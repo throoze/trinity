@@ -18,7 +18,7 @@ reserved = {
     'true'     : 'Tk_true',
     'false'    : 'Tk_false',
     'boolean'  : 'Tk_bool',
-    'number'   : 'Tk_num',
+    'number'   : 'Tk_number',
     'matrix'   : 'Tk_mat',
     'row'      : 'Tk_row',
     'col'      : 'Tk_col',
@@ -44,6 +44,8 @@ reserved = {
 }
 
 tokens = [
+    'Tk_id',      # Nombre de variable o función, por ejemplo: foo
+    'Tk_num',     # Número literal: 42 y 6.2831853 son números.
     'Tk_comma',   # ,
     'Tk_colon',   # :
     'Tk_scolon',  # ;
@@ -80,17 +82,50 @@ tokens = [
     ] + list(reserved.values())
 
 # Regular expression rules for simple tokens
-t_PLUS    = r'\+'
-t_MINUS   = r'-'
-t_TIMES   = r'\*'
-t_DIVIDE  = r'/'
-t_LPAREN  = r'\('
-t_RPAREN  = r'\)'
+t_Tk_comma   = r','
+t_Tk_colon   = r':'
+t_Tk_scolon  = r';'
+t_Tk_obrace  = r'{'
+t_Tk_cbrace  = r'}'
+t_Tk_opar    = r'\('
+t_Tk_cpar    = r'\)'
+t_Tk_obrack  = r'\['
+t_Tk_cbrack  = r'\]'
+t_Tk_and     = r'&'
+t_Tk_or      = r'\|'
+t_Tk_asign   = r'='
+t_Tk_eq      = r'=='
+t_Tk_neq     = r'/='
+t_Tk_leq     = r'<='
+t_Tk_less    = r'<'
+t_Tk_geq     = r'>='
+t_Tk_great   = r'>'
+t_Tk_plus    = r'\+'
+t_Tk_minus   = r'-'
+t_Tk_times   = r'\*'
+t_Tk_rdiv    = r'/'
+t_Tk_rmod    = r'%'
+t_Tk_trans   = r'\''
+t_Tk_mplus   = r'\.\+\.'
+t_Tkmminus   = r'\.-\.'
+t_Tk_mtimes  = r'\.*\.'
+t_Tk_mrdiv   = r'\./\.'
+t_Tk_mrmod   = r'\.%\.'
+t_Tk_mdiv    = r'\.div\.'
+t_Tk_mmod    = r'\.mod\.'
+t_Tk_quote   = r'"'
+t_Tk_esc     = r'\\'
 
-# A regular expression rule with some action code
-def t_NUMBER(t):
-    r'\d+'
-    t.value = int(t.value)    
+# Token id: a variable or a function name
+def t_Tk_id(t):
+    r'[a-zA-Z][a-zA-Z0-9]*'
+    t.type = reserved.get(t.value,'Tk_id')
+    return t
+
+# Token number: an immediate number, according to IEEE 754 
+def t_Tk_num(t):
+    r'\d+(\.\d+)?'
+    t.value = int(t.value)
     return t
 
 # Define a rule so we can track line numbers
