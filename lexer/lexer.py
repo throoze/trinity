@@ -18,7 +18,8 @@ import re
 class Lexer():
 
     def __init__(self, module=None, inputString=None):
-        if inputString is not None and inputString != 
+        if inputString is not None and inputString != '':
+            self.inputString = inputString
         self.module = module
 
     def build(self):
@@ -36,7 +37,7 @@ class Lexer():
         newline = re.compile(r'[\n\r]+')
         blankspace = re.compile(r'\s+')
         self.tokenList = []
-        for line in newline.split(inputString):
+        for line in newline.split(self.inputString):
             for piece in blankspace.split(line):
                 self.tokenList += piece
         if not silent:

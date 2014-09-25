@@ -40,3 +40,5 @@ except IOError as e:
     exit(ERR_IO_ERROR)
 
 lexer = Lexer(module=tokens, inputString=inputString)
+lexer.build()
+lexer.lex()
