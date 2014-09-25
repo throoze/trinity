@@ -20,6 +20,84 @@ class Token:
     def say_something(self): pass
 
 
+class Tk_true(Token):
+    pattern = r'^true$'
+
+class Tk_false(Token):
+    pattern = r'^false$'
+
+class Tk_bool(Token):
+    pattern = r'^boolean$'
+
+class Tk_num(Token):
+    pattern = r'^number$'
+
+class Tk_mat(Token):
+    pattern = r'^matrix$'
+
+class Tk_row(Token):
+    pattern = r'^row$'
+
+class Tk_col(Token):
+    pattern = r'^col$'
+
+class Tk_not(Token):
+    pattern = r'^not$'
+
+class Tk_div(Token):
+    pattern = r'^div$'
+
+class Tk_mod(Token):
+    pattern = r'^mod$'
+
+class Tk_print(Token):
+    pattern = r'^print$'
+
+class Tk_use(Token):
+    pattern = r'^use$'
+
+class Tk_in(Token):
+    pattern = r'^in$'
+
+class Tk_end(Token):
+    pattern = r'^end$'
+
+class Tk_set(Token):
+    pattern = r'^set$'
+
+class Tk_read(Token):
+    pattern = r'^read$'
+
+class Tk_if(Token):
+    pattern = r'^if$'
+
+class Tk_then(Token):
+    pattern = r'^then$'
+
+class Tk_else(Token):
+    pattern = r'^else$'
+
+class Tk_for(Token):
+    pattern = r'^for$'
+
+class Tk_do(Token):
+    pattern = r'^do$'
+
+class Tk_while(Token):
+    pattern = r'^while$'
+
+class Tk_function(Token):
+    pattern = r'^function$'
+
+class Tk_ret(Token):
+    pattern = r'^return$'
+
+class Tk_beg(Token):
+    pattern = r'^begin$'
+
+class Tk_prog(Token):
+    pattern = r'^program$'
+
 class Tk_comment(Token):
     pattern = r'^\#.*$'
 
@@ -83,10 +161,10 @@ class Tk_obrace(Token):
 class Tk_cbrace(Token):
     pattern = r'\}'
 
-class Tk_lparen(Token):
+class Tk_oparen(Token):
     pattern = r'\('
 
-class Tk_rparen(Token):
+class Tk_cparen(Token):
     pattern = r'\)'
 
 class Tk_obrack(Token):
