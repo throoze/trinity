@@ -1,0 +1,5 @@
+from lexer.lexer import Lexer
+import sys
+import testTokens
+
+lexer = Lexer(module=testTokens, filename=sys.argv[1])

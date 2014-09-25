@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+# ------------------------------------------------------------
+# lexer.py
+#
+# Lexer
+#
+# Authors:
+# Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
+# Francisco Martinez, 09-10502, <frammnm@gmail.com>
+#
+# Usage:
+#
+# ------------------------------------------------------------
+from lexer.lexer import Lexer
+import testTokens as tokens
+import sys
+
+ERR_BAD_USAGE = 1
+ERR_BAD_FILENAME = 2
+ERR_IO_ERROR = 3
+
+usage = 'usage'
+
+if len(sys.argv) == 2:
+    filename = sys.argv[1]
+else:
+    print usage
+    exit(ERR_BAD_USAGE)
+
+try :
+    file = open(filename, 'r')
+except IOError as e:
+    print str(e)
+    exit(ERR_BAD_FILENAME)
+
+try:
+    inputString = file.read()
+except IOError as e:
+    print str(e)
+    exit(ERR_IO_ERROR)
+
+lexer = Lexer(module=tokens, inputString=inputString)

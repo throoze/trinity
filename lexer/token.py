@@ -12,9 +12,16 @@
 #
 # ------------------------------------------------------------
 from abc import ABCMeta, abstractmethod, abstractproperty
+import re
 
 class Token:
     __metaclass__ = ABCMeta
 
-    @abstractmethod
-    def say_something(self): pass
+    def __init__(self, pattern=None):
+    	if pattern is not None:
+    		self.pattern = pattern
+    	if self.pattern is not None:
+    		self.regex = re.compile(self.pattern)
+    	self.column = -1
+    	self.line = -1
+    	self.value = None
