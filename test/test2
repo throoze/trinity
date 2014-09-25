@@ -1,0 +1,47 @@
+#Test 2 
+
+function fun ( number n2 , boolean b3 ) return boolean
+begin
+	if ((b3) &( n2 mod 2==true)) then
+	   set n2 = n2-2;
+	   set n2 = n2*2;
+	   if ((n2 > 05) | (n2<= 30)) then 
+	      return true;
+end; 
+
+program
+
+use 
+    
+    matrix(2,2) m ;
+    boolean b;
+    boolean b1;
+    number n;
+
+in
+    
+    set m= {1, 1: 1 ,1};
+    read n;
+    
+    for i in m do
+    	
+	if i mod 2 == 0 then
+	   
+	   print i;
+	
+	else
+	   
+	   print n;
+	   read n;
+	   set b = not b;
+	   set b1= true ;
+	   
+	   if b1 == false then 
+	      set b1 = fun( 10 , true ); 
+	      print b1;
+	   end;
+
+	 end;
+
+      end;
+end;

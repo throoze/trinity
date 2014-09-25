@@ -1,0 +1,21 @@
+# Prueba lenguaje trinity
+
+program
+use
+	number x;
+	number y;
+in
+	x=2;
+	y=2;
+	if x==y then
+	   print " x == y "
+	else
+	   print " x \= y "
+	end;
+	x=x+3;
+	x=x-2;
+	x= x / 2;
+	x= 10.2 % 2;
+end;
+	
+	

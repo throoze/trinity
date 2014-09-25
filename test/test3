@@ -1,0 +1,27 @@
+#Test 3
+
+
+program
+
+use 
+    m(2,2) m = {1,2:3,4};
+    m(2,2) m2= {5,6:7,8};
+    number n;
+in
+    set m=m .+. 2;
+    set m=m ./. 3;
+    set m2=m2 .-. 1;
+    set m2= m .*. 0;
+    set m2[1,1]=42;
+    set m2[1,2]=43;
+    set m2=m2 .div. 2;
+    set n=10;
+    while i <=10 do
+    	  use
+	  number n2;
+	  in
+		n2=n2+1;
+    end;
+    print n2;
+    
+end;
