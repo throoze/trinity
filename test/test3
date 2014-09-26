@@ -17,10 +17,10 @@ in
     set m2=m2 .div. 2;
     set n=10;
     while i <=10 do
-    	  use
-	  number n2;
-	  in
-		n2=n2+1;
+          use
+      number n2;
+      in
+        n2=n2+1;
     end;
     print n2;
     

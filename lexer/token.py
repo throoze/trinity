@@ -19,17 +19,17 @@ class Token:
     __metaclass__ = ABCMeta
 
     def __init__(self, pattern=None):
-    	if pattern is not None:
-    		self._pattern = pattern
+        if pattern is not None:
+            self._pattern = pattern
         try:
             if self._pattern is not None:
                 self._regex = re.compile(self._pattern)
         except AttributeError:
             pass
-    	self._column = -1
+        self._column = -1
         self._end_pos = -1
-    	self._line = -1
-    	self._value = None
+        self._line = -1
+        self._value = None
 
     def __str__(self):
         return self.__unicode__()

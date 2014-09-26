@@ -9,7 +9,7 @@ in
        print " x == 2 "
     else
        print " x \= 2 "
-    end;
+    end; # aqui termina el if
     x=x+3;
     x=x-2;
 end;
