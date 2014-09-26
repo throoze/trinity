@@ -27,17 +27,31 @@ class Token:
         self._end_pos = -1
         self._line = -1
         self._value = None
+        self._shows_value = False
 
     def __str__(self):
         return self.__unicode__()
 
     def __unicode__(self):
-        return "%s(value: '%s', line: %d, column: %d, to: %d)" % (
-            self.__class__.__name__,
-            self._value,
-            self._line,
-            self._column,
-            self._end_pos
+        # return "%s(value: '%s', line: %d, column: %d, to: %d)" % (
+        #     self.__class__.__name__,
+        #     self._value,
+        #     self._line,
+        #     self._column,
+        #     self._end_pos
+        #     )
+        value = ''
+        if self._shows_value:
+            try:
+                if self._shown_value is not None:
+                    value = ": '%s'" % str(self._shown_value)    
+            except AttributeError:
+                value = ": '%s'" % str(self._value)
+        return "Line: %d, column: %d: %s%s" % (
+                self._line,
+                self._column,
+                self._name,
+                value
             )
 
 
@@ -90,6 +104,7 @@ class BaseOneLineComment:
 
 
 class UnexpectedToken(Token):
+    _name = 'Unexpected Token'
 
     def isInit(self):
         return self._column > -1

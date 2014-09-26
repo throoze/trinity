@@ -2,7 +2,7 @@
 # ------------------------------------------------------------
 # __init__.py
 #
-# Módulo de lexer 
+# Lexer module
 #
 # Authors:
 # Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>

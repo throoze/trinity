@@ -8,7 +8,7 @@ in
     if x==2 then
        print " x == 2 \n"
     else
-       print " x \= 2 \\ y tambien comillas \""
+       print " x \= 2 \\ tambien comillas \""
     end; # aqui termina el if
     x=x+3;
     x=x-2;

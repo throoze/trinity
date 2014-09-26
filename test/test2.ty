@@ -20,7 +20,7 @@ use
 
 in
     
-    set m= {1, 1: 1 ,1};
+    set m= {1, 1.42: 1 ,1};
     read n;
     
     for i in m do
