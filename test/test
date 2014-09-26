@@ -1,0 +1,15 @@
+# Prueba lenguaje trinity
+
+program
+use
+    number x;
+in
+    x=2;
+    if x==2 then
+       print " x == 2 "
+    else
+       print " x \= 2 "
+    end;
+    x=x+3;
+    x=x-2;
+end;

@@ -17,3 +17,6 @@ class TokensNotDefinedException(Exception):
 
 class InputNotProvidedException(Exception):
     pass
+
+class PatternNotDefinedException(Exception):
+    pass

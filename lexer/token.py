@@ -12,6 +12,7 @@
 #
 # ------------------------------------------------------------
 from abc import ABCMeta, abstractmethod, abstractproperty
+from exceptions import PatternNotDefinedException
 import re
 
 class Token:
@@ -19,196 +20,79 @@ class Token:
 
     def __init__(self, pattern=None):
     	if pattern is not None:
-    		self.pattern = pattern
-    	if self.pattern is not None:
-    		self.regex = re.compile(self.pattern)
-    	self.column = -1
-    	self.line = -1
-    	self.value = None
+    		self._pattern = pattern
+        try:
+            if self._pattern is not None:
+                self._regex = re.compile(self._pattern)
+        except AttributeError:
+            pass
+    	self._column = -1
+        self._end_pos = -1
+    	self._line = -1
+    	self._value = None
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return "%s(value: '%s', line: %d, column: %d, to: %d)" % (
+            self.__class__.__name__,
+            self._value,
+            self._line,
+            self._column,
+            self._end_pos
+            )
 
 
-class Tk_true(Token):
-    pattern = r'^true$'
+    def match(self, line_no, col_no, inputString):
+        try:
+            matched = self._regex.match(inputString)
+        except AttributeError:
+            raise PatternNotDefinedException()
+        if matched is None:
+            return None
+        else:
+            self._line = line_no
+            self._column = col_no + matched.start()
+            self._end_pos = col_no + matched.end()
+            self._value = matched.group()
+            return self
 
-class Tk_false(Token):
-    pattern = r'^false$'
+    def setValue(self, value):
+        self._value = value
 
-class Tk_bool(Token):
-    pattern = r'^boolean$'
+    def setColumn(self, col):
+        self._column = col
 
-class Tk_num(Token):
-    pattern = r'^number$'
+    def setLine(self, line):
+        self._line = line
 
-class Tk_mat(Token):
-    pattern = r'^matrix$'
+    def setEndPos(self, end):
+        self._end_pos = end
 
-class Tk_row(Token):
-    pattern = r'^row$'
+    def getEndPos(self):
+        return self._end_pos
 
-class Tk_col(Token):
-    pattern = r'^col$'
+class BaseOneLineComment:
+    __metaclass__ = ABCMeta
 
-class Tk_not(Token):
-    pattern = r'^not$'
+    def __init__(self, pattern=None):
+        if pattern is not None:
+            self._pattern = pattern
+        if self._pattern is not None:
+            self._regex = re.compile(self._pattern)
 
-class Tk_div(Token):
-    pattern = r'^div$'
+    def stripOneLineComment(self, line):
+        matched = self._regex.search(line)
+        if matched is not None:
+            line = line[:matched.start()]
+        return line
 
-class Tk_mod(Token):
-    pattern = r'^mod$'
 
-class Tk_print(Token):
-    pattern = r'^print$'
+class UnexpectedToken(Token):
 
-class Tk_use(Token):
-    pattern = r'^use$'
+    def isInit(self):
+        return self._column > -1
 
-class Tk_in(Token):
-    pattern = r'^in$'
-
-class Tk_end(Token):
-    pattern = r'^end$'
-
-class Tk_set(Token):
-    pattern = r'^set$'
-
-class Tk_read(Token):
-    pattern = r'^read$'
-
-class Tk_if(Token):
-    pattern = r'^if$'
-
-class Tk_then(Token):
-    pattern = r'^then$'
-
-class Tk_else(Token):
-    pattern = r'^else$'
-
-class Tk_for(Token):
-    pattern = r'^for$'
-
-class Tk_do(Token):
-    pattern = r'^do$'
-
-class Tk_while(Token):
-    pattern = r'^while$'
-
-class Tk_function(Token):
-    pattern = r'^function$'
-
-class Tk_ret(Token):
-    pattern = r'^return$'
-
-class Tk_beg(Token):
-    pattern = r'^begin$'
-
-class Tk_prog(Token):
-    pattern = r'^program$'
-
-class Tk_comment(Token):
-    pattern = r'^\#.*$'
-
-class Tk_ID(Token):
-    pattern = r'^[a-zA-Z][a-zA-Z0-9_]*$'
-
-class Tk_number(Token):
-    pattern = r'^[+-]?([0-9]*(\.?)[0-9]*)'
-
-class Tk_mplus(Token):
-    pattern = r'\.\+\.'
-
-class Tk_mminus(Token):
-    pattern = r'\.\-\.'
-
-class Tk_mtimes(Token):
-    pattern = r'\.\*\.'
-
-class Tk_mrdiv(Token):
-    pattern = r'\.\/\.'
-
-class Tk_mrmod(Token):
-    pattern = r'\.\%\.'
-
-class Tk_mdiv(Token):
-    pattern = r'\.div\.'
-
-class Tk_mmod(Token):
-    pattern = r'\.\mod\.'
-
-class Tk_eq(Token):
-    pattern = r'\=\='
-
-class Tk_neq(Token):
-    pattern = r'\/\='
-
-class Tk_leq(Token):
-    pattern = r'\<\='
-
-class Tk_geq(Token):
-    pattern = r'\>\='
-
-class Tk_quote(Token):
-    pattern = r'\"'
-
-class Tk_esc(Token):
-    pattern = r'\\'
-
-class Tk_comma(Token):
-    pattern = r'\,'
-    
-class Tk_colon(Token):
-    pattern = r'\:'
-
-class Tk_scolon(Token):
-    pattern = r'\;'
-
-class Tk_obrace(Token):
-    pattern = r'\{'
-
-class Tk_cbrace(Token):
-    pattern = r'\}'
-
-class Tk_oparen(Token):
-    pattern = r'\('
-
-class Tk_cparen(Token):
-    pattern = r'\)'
-
-class Tk_obrack(Token):
-    pattern = r'\['
-
-class Tk_cbrack(Token):
-    pattern = r'\]'
-
-class Tk_and(Token):
-    pattern = r'\&'
-
-class Tk_or(Token):
-    pattern = r'\|'
-
-class Tk_asign(Token):
-    pattern = r'\='
-
-class Tk_great(Token):
-    pattern = r'\>'
-
-class Tk_less(Token):
-    pattern = r'\<'
-
-class Tk_plus(Token):
-    pattern = r'\+'
-
-class Tk_minus(Token):
-    pattern = r'\-'
-
-class Tk_times(Token):
-    pattern = r'\*'
-
-class Tk_rdiv(Token):
-    pattern = r'\/'
-
-class Tk_rmod(Token):
-    pattern = r'\%'
-
-class Tk_trans(Token):
-    pattern = r'\''
+    def addToValue(self, val):
+        self._value += val
