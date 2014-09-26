@@ -22,10 +22,11 @@ pp = pprint.PrettyPrinter(indent=4)
 
 class Lexer():
 
-    def __init__(self, module=None, inputString=None):
+    def __init__(self, module=None, inputString=None, debug=False):
         if inputString is not None and inputString != '':
             self._inputString = inputString
         self._module = module
+        self._debug = debug
 
     def build(self):
         if self._module is None:
@@ -33,17 +34,8 @@ class Lexer():
         self._tokens = self._module.tokens
         self._oneLineComment = self._module.OneLineComment
         self._currentError = UnexpectedToken()
-        # self._tokens = inspect.getmembers(self._module, inspect.isclass)
-        # self._oneLineComment = dict(self._tokens)['OneLineComment']
-        # for i, (k,v) in enumerate(self._tokens)
-        #     if k in ['Token', 'BaseOneLineComment', 'OneLineComment']:
-        #         try:
-        #             del self._tokens[i]
-        #         except KeyError:
-        #             pass
-        #pp.pprint(self._tokens)
 
-    def lex(self, silent=False):
+    def lex(self, silent=False, debug=False):
         if self._inputString is None or self._inputString == '':
             raise InputNotProvidedException()
         newline = re.compile(r'[\n\r]')
@@ -53,9 +45,9 @@ class Lexer():
         self._col_count = 1
         for line in newline.split(self._inputString):
             line = self._stripOneLineComment(line)
-            print "line %d: '%s'" % (self._line_count, line)
             self._col_count = 1
             self._lexLine(line)
+            if self._debug: print "=============================================\n"
             self._line_count += 1
         if not silent:
             if len(self._found_errors) > 0:
@@ -68,52 +60,61 @@ class Lexer():
     def _stripOneLineComment(self, line):
         return self._oneLineComment().stripOneLineComment(line)
 
+    def _finishError(self):
+        if self._currentError.isInit():
+            self._found_errors += [self._currentError]
+            self._currentError = UnexpectedToken()
+
+    def _updateError(self, line):
+        if self._currentError.isInit():
+            self._currentError.addToValue(line[0])
+            self._currentError.setEndPos(
+                self._currentError.getEndPos() + 1
+                )
+        else:
+            self._currentError.setLine(self._line_count)
+            self._currentError.setColumn(self._col_count)
+            self._currentError.setEndPos(self._col_count+1)
+            self._currentError.addToValue(line[0])
+        self._col_count += 1
+        line = line[1:]
+        self._lexLine(line)
+
+
+
     def _lexLine(self, line):
-        #print "line %d: '%s'" % (self._line_count, line)
+        if self._debug: print "line %02d: '%s'" % (self._line_count, line)
         if line == '':
-            if self._currentError.isInit():
-                self._found_errors += [self._currentError]
-                self._currentError = UnexpectedToken()
+            self._finishError()
             return
         pattern = r'\s+'
         regex = re.compile(pattern)
         spaces = regex.match(line)
         if spaces is not None:
-            if self._currentError.isInit():
-                self._found_errors += [self._currentError]
-                self._currentError = UnexpectedToken()
+            self._finishError()
             line = line[spaces.end():]
-            self._col_count = spaces.end()
+            self._col_count = self._col_count + spaces.end()
+            if self._debug: print "whitespace: ('%s'), _col_count: %s" % (spaces.group(), self._col_count)
             if line == '': return
         matched = False
+        next_start = 0
         for tk in self._tokens:
             test_token = tk()
             token = test_token.match(
                 self._line_count, self._col_count, line)
             if token is not None:
                 matched = True
-                self._col_count = token.getEndPos()-1
+                next_start = token.getSpan()
+                self._col_count = token.getEndPos() + 1
                 self._found_tokens += [token]
+                if self._debug: print "token: (%s), _col_count: %s" % (token, self._col_count)
                 break
         if not matched:
-            if self._currentError.isInit():
-                self._currentError.addToValue(line[0])
-                self._currentError.setEndPos(
-                    self._currentError.getEndPos()+1)
-            else:
-                self._currentError.setLine(self._line_count)
-                self._currentError.setColumn(self._col_count)
-                self._currentError.setEndPos(self._col_count+1)
-                self._currentError.addToValue(line[0])
-            self._col_count += 1
-            line = line[1:]
-            self._lexLine(line)
+            self._updateError(line)
         else:
-            if self._currentError.isInit():
-                self._found_errors += [self._currentError]
-                self._currentError = UnexpectedToken()
+            self._finishError()
             if len(line) > 0:
-                self._lexLine(line[self._col_count:])
+                self._lexLine(line[next_start:])
 
 
 

@@ -4,6 +4,27 @@ from lexer.token import Token
 class OneLineComment(BaseOneLineComment):
     _pattern = r'#.*$'
 
+class Tk_str(Token):
+    _pattern = r'"([^"\\]|\\.)*"'
+
+    def match(self, line_no, col_no, inputString):
+        ret = super(Tk_str, self).match(line_no, col_no, inputString)
+        if ret is not None:
+            ret._value = ret._value[1:len(ret._value)-1]
+        return ret
+
+    def getSpan(self):
+        if self._value is not None:
+            return len(self._value) + 2
+        else:
+            return 0
+
+class Tk_ID(Token):
+    _pattern = r'[a-zA-Z][a-zA-Z0-9_]*'
+
+class Tk_num(Token):
+    _pattern = r'[-]?([0-9]+)(\.[0-9]+)?'
+
 class Tk_true(Token):
     _pattern = r'\btrue\b'
 
@@ -81,16 +102,6 @@ class Tk_beg(Token):
 
 class Tk_prog(Token):
     _pattern = r'\bprogram\b'
-
-class Tk_str(Token):
-    _pattern = r'"([^"\\]|\\.)*"'
-    #_pattern = r'\b"(\\"|(?!\\"))*"\b'
-
-class Tk_ID(Token):
-    _pattern = r'[a-zA-Z][a-zA-Z0-9_]*'
-
-class Tk_num(Token):
-    _pattern = r'[-]?([0-9]+)(\.[0-9]+)?'
 
 class Tk_mplus(Token):
     _pattern = r'\.\+\.'
@@ -214,6 +225,7 @@ tokens = [
     Tk_beg,
     Tk_prog,
     Tk_ID,
+    Tk_minus,
     Tk_num,
     Tk_mplus,
     Tk_mminus,
@@ -241,7 +253,6 @@ tokens = [
     Tk_great,
     Tk_less,
     Tk_plus,
-    Tk_minus,
     Tk_times,
     Tk_rdiv,
     Tk_rmod,

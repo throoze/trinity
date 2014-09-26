@@ -54,7 +54,7 @@ class Token:
         else:
             self._line = line_no
             self._column = col_no + matched.start()
-            self._end_pos = col_no + matched.end()
+            self._end_pos = col_no + matched.end() - 1
             self._value = matched.group()
             return self
 
@@ -72,6 +72,9 @@ class Token:
 
     def getEndPos(self):
         return self._end_pos
+
+    def getSpan(self):
+        return len(self._value)
 
 class BaseOneLineComment:
     __metaclass__ = ABCMeta

@@ -40,6 +40,7 @@ except IOError as e:
     exit(ERR_IO_ERROR)
 
 lexer = Lexer(module=tokens, inputString=inputString)
+#lexer = Lexer(module=tokens, inputString=inputString, debug=True)
 lexer.build()
 lexer.lex()
 #lexer.lex(silent=True)
