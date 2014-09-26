@@ -98,4 +98,5 @@ class UnexpectedToken(Token):
         return self._column > -1
 
     def addToValue(self, val):
+        if self._value is None: self._value = ''
         self._value += val
