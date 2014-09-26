@@ -2,14 +2,11 @@
 # ------------------------------------------------------------
 # token.py
 #
-# BaseToken specification
+# Base Token specification
 #
 # Authors:
 # Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
-#
-# Usage:
-#
 # ------------------------------------------------------------
 from abc import ABCMeta, abstractmethod, abstractproperty
 from exceptions import PatternNotDefinedException

@@ -2,23 +2,16 @@
 # ------------------------------------------------------------
 # lexer.py
 #
-# Lexer
+# Lexer class
 #
 # Authors:
 # Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
-#
-# Usage:
-#
 # ------------------------------------------------------------
 from exceptions import (TokensNotDefinedException,
                         InputNotProvidedException)
 from token import UnexpectedToken
-import inspect
-import pprint
 import re
-
-pp = pprint.PrettyPrinter(indent=4)
 
 class Lexer():
 
@@ -116,7 +109,3 @@ class Lexer():
             self._finishError()
             if len(line) > 0:
                 self._lexLine(line[next_start:])
-
-
-
-

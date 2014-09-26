@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+# ------------------------------------------------------------
+# tokens.py
+#
+# Trinity language token specifications
+#
+# Authors:
+# Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
+# Francisco Martinez, 09-10502, <frammnm@gmail.com>
+# ------------------------------------------------------------
 from lexer.token import BaseOneLineComment
 from lexer.token import Token
 

@@ -6,12 +6,12 @@ use
 in
     x=2;
     if x==2 then
-       print " x == 2 "
+       print " x == 2 \n"
     else
-       print " x \= 2 "
+       print " x \= 2 \\ y tambien comillas \""
     end; # aqui termina el if
     x=x+3;
     x=x-2;
 end;
 
-#   $^! $ # Estos son errores pa ve qué es lo que es
+#   $^! $  # Estos son errores pa ve qué es lo que es
