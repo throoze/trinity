@@ -15,9 +15,11 @@ from lexer.lexer import Lexer
 from lang import tokens
 import sys
 
+SUCCESS = 0
 ERR_BAD_USAGE = 1
 ERR_BAD_FILENAME = 2
 ERR_IO_ERROR = 3
+ERR_UNEXPECTED_TOKEN = 4
 
 usage = 'usage'
 
@@ -42,5 +44,8 @@ except IOError as e:
 lexer = Lexer(module=tokens, inputString=inputString)
 #lexer = Lexer(module=tokens, inputString=inputString, debug=True)
 lexer.build()
-lexer.lex()
-#lexer.lex(silent=True)
+#if not lexer.lex(silent=True):
+if not lexer.lex():
+    exit(ERR_UNEXPECTED_TOKEN)
+else:
+    exit(SUCCESS)

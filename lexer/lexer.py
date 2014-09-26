@@ -34,15 +34,15 @@ class Lexer():
         self._tokens = self._module.tokens
         self._oneLineComment = self._module.OneLineComment
         self._currentError = UnexpectedToken()
-
-    def lex(self, silent=False, debug=False):
-        if self._inputString is None or self._inputString == '':
-            raise InputNotProvidedException()
-        newline = re.compile(r'[\n\r]')
         self._found_tokens = []
         self._found_errors = []
         self._line_count = 1
         self._col_count = 1
+
+    def lex(self, silent=False):
+        if self._inputString is None or self._inputString == '':
+            raise InputNotProvidedException()
+        newline = re.compile(r'[\n\r]')
         for line in newline.split(self._inputString):
             line = self._stripOneLineComment(line)
             self._col_count = 1
@@ -56,6 +56,7 @@ class Lexer():
             else:
                 for token in self._found_tokens:
                     print token
+        return len(self._found_errors) == 0
 
     def _stripOneLineComment(self, line):
         return self._oneLineComment().stripOneLineComment(line)
