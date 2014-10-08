@@ -16,7 +16,8 @@
 # ------------------------------------------------------------
 from lexer.exceptions import LexicographicalError
 from lexer.lexer import Lexer
-from lang import tokens
+from lang import specs
+import ply.yacc as yacc
 import sys
 
 SUCCESS = 0
@@ -45,11 +46,14 @@ except IOError as e:
     print "trinity: IOError: %s" % str(e)
     exit(ERR_IO_ERROR)
 
-lexer = Lexer(module=tokens, inputString=inputString)
-#lexer = Lexer(module=tokens, inputString=inputString, debug=True)
+
+lexer = Lexer(module=specs, inputString=inputString)
+#lexer = Lexer(module=specs, inputString=inputString, debug=True)
 #if not lexer.lex(silent=True):
+parser = yacc.yacc(module=specs)
 try:
-    lexer.lex()
+    result = parser.parse(lexer=lexer)
+    print result
     exit(SUCCESS)
 except LexicographicalError as e:
     print e

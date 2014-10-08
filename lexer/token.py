@@ -28,10 +28,17 @@ class Token:
         self._line = -1
         self._value = None
         self._shows_value = False
+        self.type = self._name
+        self.value = self._value
+        self.lineno = self._line
+        self.lexpos = self._column
 
     def makePLYable(self):
-        self.type = token._name
-        self.value = token._value
+        try:
+            self.type = self._grammar_name
+        except AttributeError:
+            self.type = self.__class__.__name__
+        self.value = self._value
         self.lineno = self._line
         self.lexpos = self._column
 

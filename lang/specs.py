@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ------------------------------------------------------------
-# tokens.py
+# specs.py
 #
 # Trinity language token specifications
 #
@@ -9,6 +9,10 @@
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
 # ------------------------------------------------------------
 from lexer.token import OneLineComment, Token
+
+################################################################################
+############################# Tokens specification #############################
+################################################################################
 
 class Tk_Comment(OneLineComment):
     _pattern = r'#.*$'
@@ -285,7 +289,7 @@ class Tk_trans(Token):
     _pattern = r'\''
     _name = 'Transpose'
 
-tokens = [
+token_classes = [
     Tk_Comment,
     Tk_str,
     Tk_true,
@@ -348,3 +352,175 @@ tokens = [
     Tk_rmod,
     Tk_trans
 ]
+
+tokens = [ token().__class__.__name__ for token in token_classes ]
+################################################################################
+######################### End of Tokens specification ##########################
+################################################################################
+
+
+##########################################################
+######### Reglas de asociatividad y precedencia ##########
+##########################################################
+
+precedence = (
+    # ('nonassoc','TkXor','TkMayor','TkMayorIgual','TkMenor','TkMenorIgual','TkIgual','TkDesIgual'),
+    # ('left', 'TkSuma', 'TkResta'),
+    # ('left', 'TkProducto'),
+    # ('right', 'TkDiv', 'TkMod'),
+    # ('right', 'TkPotencia'),
+    ('right', 'UMINUS'),
+)
+
+
+################################################################################
+################################ Grammar rules #################################
+################################################################################
+start = 'Expression'
+
+def p_expression(p):
+    """
+    Expression : Tk_oparen Expression Tk_cparen
+               | UnaryOperatorExpression
+               | Expression BinaryOperator Expression
+               | LeftSide
+               | FunctionCall
+               | Literal
+    """
+    pass
+
+def p_lambda(p):
+    'lambda :'
+    pass
+
+def p_left_side(p):
+    """
+    LeftSide : Tk_ID
+             | Tk_ID Tk_obrack Tk_num Tk_cbrack
+             | Tk_ID Tk_obrack Tk_num Tk_comma Tk_num Tk_cbrack
+    """
+    pass
+
+def p_unary_operator_expression(p):
+    """
+    UnaryOperatorExpression : Tk_minus Expression %prec UMINUS
+                            | Matrix Tk_trans
+                            | Tk_ID Tk_trans
+                            | Tk_not Expression
+    """
+    pass
+
+def p_literal(p):
+    """
+    Literal : Matrix
+            | Tk_true
+            | Tk_false
+            | Tk_num
+    """
+    pass
+
+def p_matrix(p):
+    """
+    Matrix : Tk_obrace RowList Tk_cbrace
+    """
+    pass
+
+def p_row_list(p):
+    """
+    RowList : Row
+            | RowList Tk_colon Row
+    """
+    pass
+
+def p_row(p):
+    """
+    Row : Tk_num
+        | Row Tk_comma Tk_num 
+    """
+    # TODO: Check if it's a number or an expression
+    pass
+
+def p_function_call(p):
+    """
+    FunctionCall : Tk_ID Tk_oparen Params Tk_cparen Tk_scolon
+    """
+    pass
+
+def p_params(p):
+    """
+    Params : ParamList
+           | lambda
+    """
+    pass
+
+def p_param_list(p):
+    """
+    ParamList : Expression
+          | ParamList Tk_comma Expression
+    """
+    pass
+
+def p_binary_operator(p):
+    """
+    BinaryOperator : ArithmeticBinaryOperator
+                   | BooleanBinaryOperator
+    """
+    pass
+
+def p_arithmetic_binary_operator(p):
+    """
+    ArithmeticBinaryOperator : OverloadedBinaryOperator
+                             | ScalarBinaryOperator
+                             | CrossedBinaryOperator
+    """
+    pass
+
+def p_overloaded_binary_operator(p):
+    """
+    OverloadedBinaryOperator : Tk_plus
+                             | Tk_minus
+                             | Tk_times
+    """
+    pass
+
+def p_scalar_binary_operator(p):
+    """
+    ScalarBinaryOperator : Tk_div
+                         | Tk_mod
+                         | Tk_rdiv
+                         | Tk_rmod
+    """
+    pass
+
+def p_crossed_binary_operator(p):
+    """
+    CrossedBinaryOperator : Tk_mplus
+                          | Tk_mminus
+                          | Tk_mtimes
+                          | Tk_mdiv
+                          | Tk_mmod
+                          | Tk_mrdiv
+                          | Tk_mrmod
+    """
+    pass
+
+def p_boolean_binary_operator(p):
+    """
+    BooleanBinaryOperator : Tk_eq
+                          | Tk_neq
+                          | Tk_leq
+                          | Tk_geq
+                          | Tk_great
+                          | Tk_less
+                          | Tk_and
+                          | Tk_or
+    """
+    pass
+
+# Error handling
+def p_error(p):
+    print "There was a SyntaxError. Offending token in %s, .type: %s" % (p,p.type)
+
+################################################################################
+############################ End of Grammar rules ##############################
+################################################################################

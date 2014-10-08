@@ -33,15 +33,16 @@ class Lexer():
     def build(self):
         if self._module is None:
             raise TokensNotDefinedException()
-        self._token_list     = self._module.tokens
-        self._currentError   = UnexpectedToken()
-        self._found_tokens   = []
+        self._token_list         = self._module.token_classes
+        self._currentError       = UnexpectedToken()
+        self._found_tokens       = []
         if self._save_comments:
             self._found_comments = []
-        self._found_errors   = []
-        self._line_count     = 1
-        self._col_count      = 1
-        self._lexed          = False
+        self._found_errors       = []
+        self._line_count         = 1
+        self._col_count          = 1
+        self._lexed              = False
+        self._tokens_generator   = None
 
     def input(self, inputString=None):
         if inputString is not None and inputString != '':
@@ -49,14 +50,14 @@ class Lexer():
         return self.lex(silent=True)
 
     def token(self):
+        if not self._lexed:
+            self.lex(silent=True)
         try:
-            return self.grabToken()
+            return self._tokens_generator.next()
         except StopIteration:
             return None
 
-    def grabToken(self):
-        if not self._lexed:
-            self.lex()
+    def tokenGenerator(self):
         for token in self._found_tokens:
             token.makePLYable()
             yield token
@@ -78,6 +79,7 @@ class Lexer():
             for token in self._found_tokens:
                     print token
         self._lexed = True
+        self._tokens_generator = self.tokenGenerator()
         return self._SUCCESS
 
     def _finishError(self):
