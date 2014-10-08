@@ -46,7 +46,6 @@ except IOError as e:
 
 lexer = Lexer(module=tokens, inputString=inputString)
 #lexer = Lexer(module=tokens, inputString=inputString, debug=True)
-lexer.build()
 #if not lexer.lex(silent=True):
 if not lexer.lex():
     exit(ERR_UNEXPECTED_TOKEN)

@@ -8,11 +8,11 @@
 # Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
 # ------------------------------------------------------------
-from lexer.token import BaseOneLineComment
-from lexer.token import Token
+from lexer.token import OneLineComment, Token
 
-class OneLineComment(BaseOneLineComment):
+class Tk_Comment(OneLineComment):
     _pattern = r'#.*$'
+    _name = 'Comment'
 
 class Tk_str(Token):
     _pattern = r'"([^"\\]|\\.)*"'
@@ -286,6 +286,7 @@ class Tk_trans(Token):
     _name = 'Transpose'
 
 tokens = [
+    Tk_Comment,
     Tk_str,
     Tk_true,
     Tk_false,

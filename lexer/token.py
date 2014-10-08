@@ -29,6 +29,9 @@ class Token:
         self._value = None
         self._shows_value = False
 
+    def __repr__(self):
+        return self.__unicode__()
+
     def __str__(self):
         return self.__unicode__()
 
@@ -87,24 +90,22 @@ class Token:
     def getSpan(self):
         return len(self._value)
 
-class BaseOneLineComment:
+    def isComment(self):
+        return False
+
+class OneLineComment(Token):
     __metaclass__ = ABCMeta
 
-    def __init__(self, pattern=None):
-        if pattern is not None:
-            self._pattern = pattern
-        if self._pattern is not None:
-            self._regex = re.compile(self._pattern)
-
-    def stripOneLineComment(self, line):
-        matched = self._regex.search(line)
-        if matched is not None:
-            line = line[:matched.start()]
-        return line
+    def isComment(self):
+        return True
 
 
 class UnexpectedToken(Token):
     _name = 'Unexpected Token'
+
+    def __init__(self, pattern=None):
+        super(UnexpectedToken, self).__init__(pattern=pattern)
+        self._shows_value = True
 
     def isInit(self):
         return self._column > -1

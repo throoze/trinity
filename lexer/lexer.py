@@ -20,24 +20,25 @@ class Lexer():
             self._inputString = inputString
         self._module = module
         self._debug = debug
+        if module is not None:
+            self.build()
 
     def build(self):
         if self._module is None:
             raise TokensNotDefinedException()
-        self._tokens = self._module.tokens
-        self._oneLineComment = self._module.OneLineComment
-        self._currentError = UnexpectedToken()
-        self._found_tokens = []
-        self._found_errors = []
-        self._line_count = 1
-        self._col_count = 1
+        self._tokens         = self._module.tokens
+        self._currentError   = UnexpectedToken()
+        self._found_tokens   = []
+        self._found_comments = []
+        self._found_errors   = []
+        self._line_count     = 1
+        self._col_count      = 1
 
     def lex(self, silent=False):
         if self._inputString is None or self._inputString == '':
             raise InputNotProvidedException()
         newline = re.compile(r'[\n\r]')
         for line in newline.split(self._inputString):
-            line = self._stripOneLineComment(line)
             self._col_count = 1
             self._lexLine(line)
             if self._debug: print "=============================================\n"
@@ -51,12 +52,10 @@ class Lexer():
                     print token
         return len(self._found_errors) == 0
 
-    def _stripOneLineComment(self, line):
-        return self._oneLineComment().stripOneLineComment(line)
-
     def _finishError(self):
         if self._currentError.isInit():
             self._found_errors += [self._currentError]
+            self._currentError = None
             self._currentError = UnexpectedToken()
 
     def _updateError(self, line):
@@ -100,7 +99,10 @@ class Lexer():
                 matched = True
                 next_start = token.getSpan()
                 self._col_count = token.getEndPos() + 1
-                self._found_tokens += [token]
+                if token.isComment():
+                    self._found_comments += [token]
+                else:
+                    self._found_tokens += [token]
                 if self._debug: print "token: (%s), _col_count: %s" % (token, self._col_count)
                 break
         if not matched:
