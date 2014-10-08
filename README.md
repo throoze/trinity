@@ -6,6 +6,14 @@ focused in linear algebra over real numbers basics, with direct support for
 operations between scalars, vectors and matrixes. Its main influence is
 [_Octave_](http://www.gnu.org/software/octave/) language.
 
+Contents:
+---------
+
+1. [Example Trinity program](https://github.com/throoze/trinity#example-trinity-program)
+2. [Trinity Lexical components](https://github.com/throoze/trinity#trinity-lexical-components)
+3. [Trinity's grammar](https://github.com/throoze/trinity#trinity-grammar)
+
+
 Example trinity program:
 ------------------------
 
@@ -37,6 +45,8 @@ Example trinity program:
         print "b is a lie";
       end;
     end;
+
+[Go to top](https://github.com/throoze/trinity#trinity)
 
 Trinity Lexical components:
 ---------------------------
@@ -109,9 +119,13 @@ complete list of the valid lexemes and their semantics.
 | Tk_rmod     |     %     | Scalar real module                                            | 4.2 % 2 == 0.2 == true;                                                     |
 | Tk_trans    |     '     | Transpose matrix.                                             | m';                                                                         |
 
+Tokens in this list are matched in the same order as they appear here, hence the
+first token shown has more precedence when being matched than the following one.
 
-#Trinity Grammar:
+[Go to top](https://github.com/throoze/trinity#trinity)
 
+## Trinity Grammar:
 
+Next is the grammar that specifies Trinity's syntax:
 
-Trinity
+[Go to top](https://github.com/throoze/trinity#trinity)
