@@ -29,26 +29,11 @@ class Token:
         self._value = None
         self._shows_value = False
 
-    def __repr__(self):
-        return self.__unicode__()
-
-    def __str__(self):
-        return self.__unicode__()
-
-    def __unicode__(self):
-        value = ''
-        if self._shows_value:
-            try:
-                if self._shown_value is not None:
-                    value = ": '%s'" % str(self._shown_value)    
-            except AttributeError:
-                value = ": '%s'" % str(self._value)
-        return "Line: %d, column: %d: %s%s" % (
-                self._line,
-                self._column,
-                self._name,
-                value
-            )
+    def makePLYable(self):
+        self.type = token._name
+        self.value = token._value
+        self.lineno = self._line
+        self.lexpos = self._column
 
 
     def match(self, line_no, col_no, inputString):
@@ -85,6 +70,27 @@ class Token:
 
     def isComment(self):
         return False
+
+    def __repr__(self):
+        return self.__unicode__()
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        value = ''
+        if self._shows_value:
+            try:
+                if self._shown_value is not None:
+                    value = ": '%s'" % str(self._shown_value)    
+            except AttributeError:
+                value = ": '%s'" % str(self._value)
+        return "Line: %d, column: %d: %s%s" % (
+                self._line,
+                self._column,
+                self._name,
+                value
+            )
 
 class OneLineComment(Token):
     __metaclass__ = ABCMeta

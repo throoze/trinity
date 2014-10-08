@@ -18,31 +18,52 @@ class Lexer():
 
     _SUCCESS = 0
 
-    def __init__(self, module=None, inputString=None, debug=False):
+    def __init__(self, module=None, inputString=None, debug=False, save_comments=False):
+        self.reset(module, inputString, debug, save_comments)
+
+    def reset(self, module=None, inputString=None, debug=False, save_comments=False):
         if inputString is not None and inputString != '':
             self._inputString = inputString
         self._module = module
         self._debug = debug
+        self._save_comments = save_comments
         if module is not None:
             self.build()
 
     def build(self):
         if self._module is None:
             raise TokensNotDefinedException()
-        self._tokens         = self._module.tokens
+        self._token_list     = self._module.tokens
         self._currentError   = UnexpectedToken()
         self._found_tokens   = []
-        self._found_comments = []
+        if self._save_comments:
+            self._found_comments = []
         self._found_errors   = []
         self._line_count     = 1
         self._col_count      = 1
+        self._lexed          = False
 
     def input(self, inputString=None):
         if inputString is not None and inputString != '':
             self._inputString = inputString
         return self.lex(silent=True)
 
+    def token(self):
+        try:
+            return self.grabToken()
+        except StopIteration:
+            return None
+
+    def grabToken(self):
+        if not self._lexed:
+            self.lex()
+        for token in self._found_tokens:
+            token.makePLYable()
+            yield token
+
     def lex(self, silent=False):
+        if self._module is None:
+            raise TokensNotDefinedException()
         if self._inputString is None or self._inputString == '':
             raise InputNotProvidedException()
         newline = re.compile(r'[\n\r]')
@@ -56,6 +77,7 @@ class Lexer():
         if not silent:
             for token in self._found_tokens:
                     print token
+        self._lexed = True
         return self._SUCCESS
 
     def _finishError(self):
@@ -97,7 +119,7 @@ class Lexer():
             if line == '': return
         matched = False
         next_start = 0
-        for tk in self._tokens:
+        for tk in self._token_list:
             test_token = tk()
             token = test_token.match(
                 self._line_count, self._col_count, line)
@@ -106,7 +128,8 @@ class Lexer():
                 next_start = token.getSpan()
                 self._col_count = token.getEndPos() + 1
                 if token.isComment():
-                    self._found_comments += [token]
+                    if self._save_comments:
+                        self._found_comments += [token]
                 else:
                     self._found_tokens += [token]
                 if self._debug: print "token: (%s), _col_count: %s" % (token, self._col_count)
