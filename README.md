@@ -11,9 +11,9 @@ operations between scalars, vectors and matrixes. Its main influence is
 This project is an implementation of an interpreter of the Trinity language,
 written in Python, using a custom lexer, and [PLY](http://www.dabeaz.com/ply/)'s
 parser - `yacc` -. Details on the implementation will be documented here. So
-far, the lexer and the definition of tokens are finished. Lexer integration with
-PLY's yacc, and the definition of the grammar are currently being implemented. 
-
+far, the lexer and the definition of tokens are finished. The lexer is currently
+compatible with PLY's yacc parser generator, and the grammar is specified in
+this document. Implementation of the grammar rules is currently on course.
 
 Contents:
 ---------
@@ -25,6 +25,7 @@ Contents:
 
 Example trinity program:
 ------------------------
+[Go to top](https://github.com/throoze/trinity#trinity)
 
     program
     use
