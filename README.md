@@ -146,38 +146,59 @@ rules are unnecesary, but are written anyways for readability purposes.
 
 ```
 Trinity : FuncDefinitions Tk_prog InstBlock Tk_end Tk_scolon
+```
 
+```
 FuncDefinitions : FuncDefinitions FuncDefinition
                 | lambda
+```
 
+```
 FuncDefinition : Tk_function Tk_ID Tk_oparen FormalParams Tk_cparen Tk_ret Type FunctionBody
+```
 
+```
 FunctionBody : Tk_beg FunInstBlock Tk_end Tk_scolon
+```
 
+```
 FormalParams : FParamList
              | lambda
+```
 
+```
 FParamList : FormalParam
            | FParamList Tk_comma FormalParam
+```
 
+```
 FormalParam : Type Tk_ID
+```
 
+```
 Type : Tk_bool
      | Tk_number
      | Tk_mat Tk_oparen Tk_num Tk_comma Tk_num Tk_cparen
      | Tk_row Tk_oparen Tk_num Tk_cparen
      | Tk_col Tk_oparen Tk_num Tk_cparen
+```
 
-
+```
 InstBlock : InstList
           | lambda
+```
 
+```
 InstList : Statement
          | InstList Statement
+```
 
+```
 Statement : Matched
           | Unmatched
+```
 
+```
 Matched : Tk_if Expression Tk_then Matched Tk_else Matched Tk_end Tk_scolon
         | Print
         | Read
@@ -185,19 +206,29 @@ Matched : Tk_if Expression Tk_then Matched Tk_else Matched Tk_end Tk_scolon
         | While
         | For
         | Block
+```
 
+```
 Unmatched : Tk_if Expression Tk_then Statement Tk_end Tk_scolon
           | Tk_if Expression Tk_then Matched Tk_else Unmatched Tk_end Tk_scolon
+```
 
+```
 FunInstBlock : FunInstList
              |  lambda
+```
 
+```
 FunInstList : FunStatement
             | FunInstList FunStatement
+```
 
+```
 FunStatement : FunMatched
              | FunUnmatched
+```
 
+```
 FunMatched : Tk_if Expression Tk_then FunMatched Tk_else FunMatched Tk_end Tk_scolon
            | Print
            | Read
@@ -206,95 +237,155 @@ FunMatched : Tk_if Expression Tk_then FunMatched Tk_else FunMatched Tk_end Tk_sc
            | FunFor
            | Return
            | FunBlock
+```
 
+```
 FunUnmatched : Tk_if Expression Tk_then FunStatement Tk_end Tk_scolon
              | Tk_if Expression Tk_then FunMatched Tk_else FunUnmatched Tk_end Tk_scolon
+```
 
+```
 Print : Tk_print PrintableList
+```
 
+```
 PrintableList : Printable
               | PrintableList Tk_comma Printable
+```
 
+```
 Printable : Expression
           | Tk_str
+```
 
+```
 Read : Tk_read Tk_ID Tk_scolon
+```
 
+```
 Assignment : Tk_set LeftSide Expression Tk_scolon
+```
 
+```
 LeftSide : Tk_ID
          | Tk_ID Tk_obrack Tk_num Tk_cbrack
          | Tk_ID Tk_obrack Tk_num Tk_comma Tk_num Tk_cbrack
+```
 
+```
 While : Tk_while Expression Tk_do InstBlock Tk_end Tk_scolon
+```
 
+```
 For : Tk_for Tk_ID Tk_in Expression Tk_do InstBlock Tk_end Tk_scolon
+```
 
+```
 Block : Tk_use VariableDeclarations Tk_in InstBlock Tk_end Tk_scolon
+```
 
+```
 FunWhile : Tk_while Expression Tk_do FunInstBlock Tk_end Tk_scolon
+```
 
+```
 FunFor : Tk_for Tk_ID Tk_in Expression Tk_do FunInstBlock Tk_end Tk_scolon
+```
 
+```
 Return : Tk_ret Expression Tk_scolon
+```
 
+```
 FunBlock : Tk_use VariableDeclarations Tk_in FunInstBlock Tk_end Tk_scolon
+```
 
+```
 VariableDeclarations : VariableDeclaration
                      | VariableDeclarations VariableDeclaration
+```
 
+```
 VariableDeclaration : Type Tk_ID Tk_scolon
                     | Type Tk_ID Tk_assign Expression Tk_scolon
+```
 
+```
 Expression : Tk_oparen Expression Tk_cparen
            | UnaryOperatorExpression
            | Expression BinaryOperator Expression
            | LeftSide
            | FunctionCall
            | Literal
+```
 
+```
 UnaryOperatorExpression : Tk_minus Expression %prec UMINUS
                         | Matrix Tk_trans
                         | Tk_ID Tk_trans
                         | Tk_not Expression
+```
 
+```
 Literal : Matrix
         | Tk_true
         | Tk_false
         | Tk_num
+```
 
+```
 Matrix : Tk_obrace RowList Tk_cbrace
+```
 
+```
 RowList : Row
         | RowList Tk_colon Row
+```
 
+```
 Row : Tk_num                # TODO: Check if it's a number or an expression
     | Row Tk_comma Tk_num 
+```
 
+```
 FunctionCall : Tk_ID Tk_oparen Params Tk_cparen Tk_scolon
+```
 
+```
 Params : ParamList
        | lambda
+```
 
+```
 ParamList : Expression
           | ParamList Tk_comma Expression
+```
 
+```
 BinaryOperator : ArithmeticBinaryOperator
                | BooleanBinaryOperator
+```
 
+```
 ArithmeticBinaryOperator : OverloadedBinaryOperator
                          | ScalarBinaryOperator
                          | CrossedBinaryOperator
+```
 
+```
 OverloadedBinaryOperator : Tk_plus
                          | Tk_minus
                          | Tk_times
+```
 
+```
 ScalarBinaryOperator : Tk_div
                      | Tk_mod
                      | Tk_rdiv
                      | Tk_rmod
+```
 
+```
 CrossedBinaryOperator : Tk_mplus
                       | Tk_mminus
                       | Tk_mtimes
@@ -302,7 +393,9 @@ CrossedBinaryOperator : Tk_mplus
                       | Tk_mmod
                       | Tk_mrdiv
                       | Tk_mrmod
+```
 
+```
 BooleanBinaryOperator : Tk_eq
                       | Tk_neq
                       | Tk_leq
