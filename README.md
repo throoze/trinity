@@ -38,7 +38,8 @@ Example trinity program:
       end;
     end;
 
-#Trinity Lexical components:
+Trinity Lexical components:
+---------------------------
 
 There's a limited set of valid lexemes in Trinity. They must be written using
 only [ASCII](http://tools.ietf.org/html/rfc20) characters. The following is a
@@ -84,10 +85,10 @@ complete list of the valid lexemes and their semantics.
 | Tk_mrmod    |    .%.    | Crossed real module between a scalar and a matrix.            | { 1, 2 : 3, 4 } .%. 42;                                                     |
 | Tk_mdiv     |   .div.   | Crossed integer divition between a scalar and a matrix.       | { 1, 2 : 3, 4 } .div. 42;                                                   |
 | Tk_mmod     |   .mod.   | Crossed integer module between a scalar and a matrix.         | { 1, 2 : 3, 4 } .mod. 42;                                                   |
-| Tk_eq       |     ==    | Equivalence                                                   |                                                                             |
-| Tk_neq      |     /=    | Not equivalence                                               |                                                                             |
-| Tk_leq      |     <=    | Less or equal than                                            |                                                                             |
-| Tk_geq      |     >=    | Greater or equal than                                         |                                                                             |
+| Tk_eq       |     ==    | Equivalence                                                   | false == false == true;                                                     |
+| Tk_neq      |     /=    | Not equivalence                                               | false == true /= true;                                                      |
+| Tk_leq      |     <=    | Less or equal than                                            | 10 <= 42 == true;                                                           |
+| Tk_geq      |     >=    | Greater or equal than                                         | 100 >= 42 == true;                                                          |
 | Tk_comma    |     ,     | Arguments and row elements separator.                         | foo(arg0, { 1, 2 : 3, 4 });                                                 |
 | Tk_colon    |     :     | Columns separator                                             | { 1, 2 : 3, 4 }                                                             |
 | Tk_scolon   |     ;     | Discards the value of an expression.                          | 10;                                                                         |
@@ -97,16 +98,16 @@ complete list of the valid lexemes and their semantics.
 | Tk_cparen   |     )     | Close parenthesis. Used in function calls and definition.     | foo(bar);                                                                   |
 | Tk_obrack   |     [     | Open bracket. Used when accessing matrix elements.            | m[1,2];                                                                     |
 | Tk_cbrack   |     ]     | Close bracket. Used when accessing matrix elements.           | m[1,2];                                                                     |
-| Tk_and      |     &     | AND boolean operator                                          |                                                                             |
-| Tk_or       |     |     | OR boolean operator                                           |                                                                             |
-| Tk_assign   |     =     | Asignment                                                     |                                                                             |
-| Tk_great    |     >     | Greater than                                                  |                                                                             |
-| Tk_less     |     <     | Less than                                                     |                                                                             |
-| Tk_plus     |     +     | Scalar and matrix addition.                                   |                                                                             |
-| Tk_times    |     *     | Scalar and matrix multiplication.                             |                                                                             |
-| Tk_rdiv     |     /     | Scalar real division.                                         |                                                                             |
-| Tk_rmod     |     %     | Scalar real module                                            |                                                                             |
-| Tk_trans    |     '     | Transpose matrix.                                             |                                                                             |
+| Tk_and      |     &     | AND boolean operator                                          | true & false == false;                                                      |
+| Tk_or       |     |     | OR boolean operator                                           | true | false == true;                                                       |
+| Tk_assign   |     =     | Asignment                                                     | set n = 42;                                                                 |
+| Tk_great    |     >     | Greater than                                                  | 100 > 42 == true;                                                           |
+| Tk_less     |     <     | Less than                                                     | 10 < 42 == true;                                                            |
+| Tk_plus     |     +     | Scalar and matrix addition.                                   | { 1, 2 : 3, 4 } + { 5, 6 : 7, 8 } == { 6, 8 : 10, 12 } == true;             |
+| Tk_times    |     *     | Scalar and matrix multiplication.                             | 6 * 7 == 42 == true;                                                        |
+| Tk_rdiv     |     /     | Scalar real division.                                         | 84 / 2 == 42 == true;                                                       |
+| Tk_rmod     |     %     | Scalar real module                                            | 4.2 % 2 == 0.2 == true;                                                     |
+| Tk_trans    |     '     | Transpose matrix.                                             | m';                                                                         |
 
 
 #Trinity Grammar:
