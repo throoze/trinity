@@ -9,11 +9,14 @@
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
 # ------------------------------------------------------------
 from exceptions import (TokensNotDefinedException,
-                        InputNotProvidedException)
+                        InputNotProvidedException,
+                        LexicographicalError)
 from token import UnexpectedToken
 import re
 
 class Lexer():
+
+    _SUCCESS = 0
 
     def __init__(self, module=None, inputString=None, debug=False):
         if inputString is not None and inputString != '':
@@ -34,6 +37,11 @@ class Lexer():
         self._line_count     = 1
         self._col_count      = 1
 
+    def input(self, inputString=None):
+        if inputString is not None and inputString != '':
+            self._inputString = inputString
+        return self.lex(silent=True)
+
     def lex(self, silent=False):
         if self._inputString is None or self._inputString == '':
             raise InputNotProvidedException()
@@ -43,14 +51,12 @@ class Lexer():
             self._lexLine(line)
             if self._debug: print "=============================================\n"
             self._line_count += 1
+        if len(self._found_errors) > 0:
+            raise LexicographicalError(self._found_errors)
         if not silent:
-            if len(self._found_errors) > 0:
-                for error in self._found_errors:
-                    print error
-            else:
-                for token in self._found_tokens:
+            for token in self._found_tokens:
                     print token
-        return len(self._found_errors) == 0
+        return self._SUCCESS
 
     def _finishError(self):
         if self._currentError.isInit():

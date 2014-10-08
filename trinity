@@ -14,6 +14,7 @@
 #
 # where program.ty is a file with theprogram to be analyzed.
 # ------------------------------------------------------------
+from lexer.exceptions import LexicographicalError
 from lexer.lexer import Lexer
 from lang import tokens
 import sys
@@ -22,7 +23,7 @@ SUCCESS = 0
 ERR_BAD_USAGE = 1
 ERR_BAD_FILENAME = 2
 ERR_IO_ERROR = 3
-ERR_UNEXPECTED_TOKEN = 4
+ERR_LEXICOGRAPHICAL_ERROR = 4
 
 usage = ' Usage:\n\n\t$ ./trinity program.ty\n\n where "program.ty" is a file with the program to be analyzed.'
 
@@ -47,7 +48,9 @@ except IOError as e:
 lexer = Lexer(module=tokens, inputString=inputString)
 #lexer = Lexer(module=tokens, inputString=inputString, debug=True)
 #if not lexer.lex(silent=True):
-if not lexer.lex():
-    exit(ERR_UNEXPECTED_TOKEN)
-else:
+try:
+    lexer.lex()
     exit(SUCCESS)
+except LexicographicalError as e:
+    print e
+    exit(ERR_LEXICOGRAPHICAL_ERROR)

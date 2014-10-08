@@ -36,13 +36,6 @@ class Token:
         return self.__unicode__()
 
     def __unicode__(self):
-        # return "%s(value: '%s', line: %d, column: %d, to: %d)" % (
-        #     self.__class__.__name__,
-        #     self._value,
-        #     self._line,
-        #     self._column,
-        #     self._end_pos
-        #     )
         value = ''
         if self._shows_value:
             try:
