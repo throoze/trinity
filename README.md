@@ -1,6 +1,8 @@
 Trinity
 =======
 
+Version: 0.0.1
+
 Trinity is an imperative programming language with static scope and types
 focused in linear algebra over real numbers basics, with direct support for
 operations between scalars, vectors and matrixes. Its main influence is
@@ -87,7 +89,7 @@ complete list of the valid lexemes and their semantics.
 | Tk_then     |    then   | Reserved word. Starts selection statement's normal flow.      | if cake then print "The cake is true"; else print "The cake is a lie"; end; |
 | Tk_else     |    else   | Reserved word. Starts selection statement's alternative flow. | if cake then print "The cake is true"; else print "The cake is a lie"; end; |
 | Tk_for      |    for    | Reserved word. Starts matrix based iteration.                 | for i in matrix do print "element: ", i; end;                               |
-| Tk_do       |   Tk_do   | Reserved word. Starts iteration's body.                       | for i in matrix do print "element: ", i; end;                               |
+| Tk_do       |    do     | Reserved word. Starts iteration's body.                       | for i in matrix do print "element: ", i; end;                               |
 | Tk_while    |   while   | Reserved word. Starts conditional iteration.                  | while i < 10 do print i; set i = i + 1; end;                                |
 | Tk_function |  function | Reserved word. Starts function definition.                    | function foo(number n) return boolean begin print n; return true; end;      |
 | Tk_ret      |   return  | Reserved word. Used in function definition.                   | function foo(number n) return boolean begin print n; return true; end;      |
@@ -142,7 +144,7 @@ shown as their Token names, as listed in the table of
 column **Tokens**. The _empty rule_ is represented with the word _lambda_. Some
 rules are unnecesary, but are written anyways for readability purposes.
 
-'''
+```
 Trinity : FuncDefinitions Tk_prog InstBlock Tk_end Tk_scolon
 
 FuncDefinitions : FuncDefinitions FuncDefinition
@@ -309,7 +311,7 @@ BooleanBinaryOperator : Tk_eq
                       | Tk_less
                       | Tk_and
                       | Tk_or
-'''
+```
 
 [Go to top](https://github.com/throoze/trinity#trinity)
 
