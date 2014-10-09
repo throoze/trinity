@@ -146,7 +146,7 @@ column **Tokens**. The _empty rule_ is represented with the word _lambda_. Some
 rules are unnecesary, but are written anyways for readability purposes.
 
 ```
-Trinity : FuncDefinitions Tk_prog InstBlock Tk_end Tk_scolon
+Trinity : FuncDefinitions Tk_prog Statements Tk_end Tk_scolon
 ```
 
 ```
@@ -159,7 +159,7 @@ FuncDefinition : Tk_function Tk_ID Tk_oparen FormalParams Tk_cparen Tk_ret Type 
 ```
 
 ```
-FunctionBody : Tk_beg FunInstBlock Tk_end Tk_scolon
+FunctionBody : Tk_beg Statements Tk_end Tk_scolon
 ```
 
 ```
@@ -185,68 +185,24 @@ Type : Tk_bool
 ```
 
 ```
-InstBlock : InstList
-          | lambda
+Statements : Statements Statement
+           | lambda
 ```
 
 ```
-InstList : Statement
-         | InstList Statement
+Statement : SimpleStatement
+          | ComplexStatement
 ```
 
 ```
-Statement : Matched
-          | Unmatched
+SimpleStatement : Print
+                | Read
+                | Assignment
+                | Return
 ```
 
 ```
-Matched : Tk_if Expression Tk_then Matched Tk_else Matched Tk_end Tk_scolon
-        | Print
-        | Read
-        | Assignment
-        | While
-        | For
-        | Block
-```
-
-```
-Unmatched : Tk_if Expression Tk_then Statement Tk_end Tk_scolon
-          | Tk_if Expression Tk_then Matched Tk_else Unmatched Tk_end Tk_scolon
-```
-
-```
-FunInstBlock : FunInstList
-             |  lambda
-```
-
-```
-FunInstList : FunStatement
-            | FunInstList FunStatement
-```
-
-```
-FunStatement : FunMatched
-             | FunUnmatched
-```
-
-```
-FunMatched : Tk_if Expression Tk_then FunMatched Tk_else FunMatched Tk_end Tk_scolon
-           | Print
-           | Read
-           | Assignment
-           | FunWhile
-           | FunFor
-           | Return
-           | FunBlock
-```
-
-```
-FunUnmatched : Tk_if Expression Tk_then FunStatement Tk_end Tk_scolon
-             | Tk_if Expression Tk_then FunMatched Tk_else FunUnmatched Tk_end Tk_scolon
-```
-
-```
-Print : Tk_print PrintableList
+Print : Tk_print PrintableList Tk_scolon
 ```
 
 ```
@@ -264,7 +220,7 @@ Read : Tk_read Tk_ID Tk_scolon
 ```
 
 ```
-Assignment : Tk_set LeftSide Expression Tk_scolon
+Assignment : Tk_set LeftSide Tk_assign Expression Tk_scolon
 ```
 
 ```
@@ -274,31 +230,31 @@ LeftSide : Tk_ID
 ```
 
 ```
-While : Tk_while Expression Tk_do InstBlock Tk_end Tk_scolon
-```
-
-```
-For : Tk_for Tk_ID Tk_in Expression Tk_do InstBlock Tk_end Tk_scolon
-```
-
-```
-Block : Tk_use VariableDeclarations Tk_in InstBlock Tk_end Tk_scolon
-```
-
-```
-FunWhile : Tk_while Expression Tk_do FunInstBlock Tk_end Tk_scolon
-```
-
-```
-FunFor : Tk_for Tk_ID Tk_in Expression Tk_do FunInstBlock Tk_end Tk_scolon
-```
-
-```
 Return : Tk_ret Expression Tk_scolon
 ```
 
 ```
-FunBlock : Tk_use VariableDeclarations Tk_in FunInstBlock Tk_end Tk_scolon
+ComplexStatement : If
+                 | For
+                 | While
+                 | Block
+```
+
+```
+If : Tk_if Expression Tk_then Statements Tk_else Statements Tk_end Tk_scolon
+   | Tk_if Expression Tk_then Statements Tk_end Tk_scolon
+```
+
+```
+While : Tk_while Expression Tk_do Statements Tk_end Tk_scolon
+```
+
+```
+For : Tk_for Tk_ID Tk_in Expression Tk_do Statements Tk_end Tk_scolon
+```
+
+```
+Block : Tk_use VariableDeclarations Tk_in Statements Tk_end Tk_scolon
 ```
 
 ```
@@ -345,21 +301,21 @@ RowList : Row
 
 ```
 Row : Tk_num                # TODO: Check if it's a number or an expression
-    | Row Tk_comma Tk_num 
+    | Row Tk_comma Tk_num
 ```
 
 ```
-FunctionCall : Tk_ID Tk_oparen Params Tk_cparen Tk_scolon
+FunctionCall : Tk_ID Tk_oparen Arguments Tk_cparen
 ```
 
 ```
-Params : ParamList
-       | lambda
+Arguments : ArgList
+          | lambda
 ```
 
 ```
-ParamList : Expression
-          | ParamList Tk_comma Expression
+ArgList : Expression
+        | ArgList Tk_comma Expression
 ```
 
 ```

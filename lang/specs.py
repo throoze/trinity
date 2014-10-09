@@ -353,7 +353,7 @@ token_classes = [
     Tk_trans
 ]
 
-tokens = [ token().__class__.__name__ for token in token_classes ]
+tokens = [ token().__class__.__name__ for token in token_classes[1:] ]
 ################################################################################
 ######################### End of Tokens specification ##########################
 ################################################################################
@@ -364,136 +364,265 @@ tokens = [ token().__class__.__name__ for token in token_classes ]
 ##########################################################
 
 precedence = (
-    # ('nonassoc','TkXor','TkMayor','TkMayorIgual','TkMenor','TkMenorIgual','TkIgual','TkDesIgual'),
-    # ('left', 'TkSuma', 'TkResta'),
-    # ('left', 'TkProducto'),
-    # ('right', 'TkDiv', 'TkMod'),
-    # ('right', 'TkPotencia'),
+    ('left', 'Tk_plus', 'Tk_minus',
+             'Tk_mplus', 'Tk_mminus'
+             ),
+    ('left', 'Tk_times', 'Tk_rdiv', 'Tk_rmod', 'Tk_div', 'Tk_mod',
+             'Tk_mtimes', 'Tk_mrdiv', 'Tk_mrmod', 'Tk_mdiv', 'Tk_mmod'
+             ),
+    ('left', 'Tk_trans'),
+    ('nonassoc', 'Tk_eq', 'Tk_neq', 'Tk_geq', 'Tk_leq', 'Tk_great', 'Tk_less'),
+    ('left', 'Tk_or'),
+    ('left', 'Tk_and'),
     ('right', 'UMINUS'),
+    ('right', 'Tk_not')
 )
 
 
 ################################################################################
 ################################ Grammar rules #################################
 ################################################################################
-start = 'Expression'
+start = 'Trinity'
 
-def p_expression(p):
-    """
+#Gramatic Definitions
+def p_Trinity(p):
+    '''
+    Trinity : FuncDefinitions Tk_prog Statements Tk_end Tk_scolon
+    '''
+
+def p_FuncDefinitions(p):
+    '''
+    FuncDefinitions : FuncDefinitions FuncDefinition
+                    | lambda
+    '''
+
+def p_FuncDefinition(p):
+    '''
+    FuncDefinition : Tk_function Tk_ID Tk_oparen FormalParams Tk_cparen Tk_ret Type FunctionBody
+    '''
+
+def p_FunctionBody(p):
+    '''
+    FunctionBody : Tk_beg Statements Tk_end Tk_scolon
+    '''
+
+def p_FormalParams(p):
+    '''
+    FormalParams : FParamList
+                 | lambda
+    '''
+
+def p_FParamList(p):
+    '''
+    FParamList : FormalParam
+               | FParamList Tk_comma FormalParam
+    '''
+
+def p_FormalParam(p):
+    '''
+    FormalParam : Type Tk_ID
+    '''
+
+def p_Type(p):
+    '''
+    Type : Tk_bool
+         | Tk_number
+         | Tk_mat Tk_oparen Tk_num Tk_comma Tk_num Tk_cparen
+         | Tk_row Tk_oparen Tk_num Tk_cparen
+         | Tk_col Tk_oparen Tk_num Tk_cparen
+    '''
+
+def p_Statements(p):
+    '''
+    Statements : Statements Statement
+               | lambda
+    '''
+
+def p_Statement(p):
+    '''
+    Statement : SimpleStatement
+              | ComplexStatement
+    '''
+
+def p_SimpleStatement(p):
+    '''
+    SimpleStatement : Print
+                    | Read
+                    | Assignment
+                    | Return
+    '''
+
+def p_Print(p):
+    '''
+    Print : Tk_print PrintableList Tk_scolon
+    '''
+
+def p_PrintableList(p):
+    '''
+    PrintableList : Printable
+                  | PrintableList Tk_comma Printable
+    '''
+
+def p_Printable(p):
+    '''
+    Printable : Expression
+              | Tk_str
+    '''
+
+def p_Read(p):
+    '''
+    Read : Tk_read Tk_ID Tk_scolon
+    '''
+
+def p_Assignment(p):
+    '''
+    Assignment : Tk_set LeftSide Tk_assign Expression Tk_scolon
+    '''
+
+def p_LeftSide(p):
+    '''
+    LeftSide : Tk_ID
+             | Tk_ID Tk_obrack Tk_num Tk_cbrack
+             | Tk_ID Tk_obrack Tk_num Tk_comma Tk_num Tk_cbrack
+    '''
+
+def p_Return(p):
+    '''
+    Return : Tk_ret Expression Tk_scolon
+    '''
+
+def p_ComplexStatement(p):
+    '''
+    ComplexStatement : If
+                     | For
+                     | While
+                     | Block
+    '''
+
+def p_If(p):
+    '''
+    If : Tk_if Expression Tk_then Statements Tk_else Statements Tk_end Tk_scolon
+       | Tk_if Expression Tk_then Statements Tk_end Tk_scolon
+    '''
+
+def p_For(p):
+    '''
+    For : Tk_for Tk_ID Tk_in Expression Tk_do Statements Tk_end Tk_scolon
+    '''
+
+def p_While(p):
+    '''
+    While : Tk_while Expression Tk_do Statements Tk_end Tk_scolon
+    '''
+
+def p_Block(p):
+    '''
+    Block : Tk_use VariableDeclarations Tk_in Statements Tk_end Tk_scolon
+    '''
+
+def p_VariableDeclarations(p):
+    '''
+    VariableDeclarations : VariableDeclaration
+                         | VariableDeclarations VariableDeclaration
+    '''
+
+def p_VariableDeclaration(p):
+    '''
+    VariableDeclaration : Type Tk_ID Tk_scolon
+                        | Type Tk_ID Tk_assign Expression Tk_scolon
+    '''
+
+def p_Expression(p):
+    '''
     Expression : Tk_oparen Expression Tk_cparen
                | UnaryOperatorExpression
                | Expression BinaryOperator Expression
                | LeftSide
                | FunctionCall
                | Literal
-    """
-    pass
+    '''
 
-def p_lambda(p):
-    'lambda :'
-    pass
-
-def p_left_side(p):
-    """
-    LeftSide : Tk_ID
-             | Tk_ID Tk_obrack Tk_num Tk_cbrack
-             | Tk_ID Tk_obrack Tk_num Tk_comma Tk_num Tk_cbrack
-    """
-    pass
-
-def p_unary_operator_expression(p):
-    """
+def p_UnaryOperatorExpression(p):
+    '''
     UnaryOperatorExpression : Tk_minus Expression %prec UMINUS
                             | Matrix Tk_trans
                             | Tk_ID Tk_trans
                             | Tk_not Expression
-    """
-    pass
+    '''
 
-def p_literal(p):
-    """
+def p_Literal(p):
+    '''
     Literal : Matrix
             | Tk_true
             | Tk_false
             | Tk_num
-    """
-    pass
+    '''
 
-def p_matrix(p):
-    """
+def p_Matrix(p):
+    '''
     Matrix : Tk_obrace RowList Tk_cbrace
-    """
-    pass
+    '''
 
-def p_row_list(p):
-    """
+def p_RowList(p):
+    '''
     RowList : Row
             | RowList Tk_colon Row
-    """
-    pass
+    '''
 
-def p_row(p):
-    """
+def p_Row(p):
+    '''
     Row : Tk_num
-        | Row Tk_comma Tk_num 
-    """
+        | Row Tk_comma Tk_num
+    '''
     # TODO: Check if it's a number or an expression
-    pass
 
-def p_function_call(p):
-    """
-    FunctionCall : Tk_ID Tk_oparen Params Tk_cparen Tk_scolon
-    """
-    pass
+def p_FunctionCall(p):
+    '''
+    FunctionCall : Tk_ID Tk_oparen Arguments Tk_cparen
+    '''
 
-def p_params(p):
-    """
-    Params : ParamList
-           | lambda
-    """
-    pass
+def p_Arguments(p):
+    '''
+    Arguments : ArgList
+              | lambda
+    '''
 
-def p_param_list(p):
-    """
-    ParamList : Expression
-          | ParamList Tk_comma Expression
-    """
-    pass
+def p_ArgList(p):
+    '''
+    ArgList : Expression
+            | ArgList Tk_comma Expression
+    '''
 
-def p_binary_operator(p):
-    """
+def p_BinaryOperator(p):
+    '''
     BinaryOperator : ArithmeticBinaryOperator
                    | BooleanBinaryOperator
-    """
-    pass
+    '''
 
-def p_arithmetic_binary_operator(p):
-    """
+def p_ArithmeticBinaryOperator(p):
+    '''
     ArithmeticBinaryOperator : OverloadedBinaryOperator
                              | ScalarBinaryOperator
                              | CrossedBinaryOperator
-    """
-    pass
+    '''
 
-def p_overloaded_binary_operator(p):
-    """
+def p_OverloadedBinaryOperator(p):
+    '''
     OverloadedBinaryOperator : Tk_plus
                              | Tk_minus
                              | Tk_times
-    """
-    pass
+    '''
 
-def p_scalar_binary_operator(p):
-    """
+def p_ScalarBinaryOperator(p):
+    '''
     ScalarBinaryOperator : Tk_div
                          | Tk_mod
                          | Tk_rdiv
                          | Tk_rmod
-    """
-    pass
+    '''
 
-def p_crossed_binary_operator(p):
-    """
+def p_CrossedBinaryOperator(p):
+    '''
     CrossedBinaryOperator : Tk_mplus
                           | Tk_mminus
                           | Tk_mtimes
@@ -501,11 +630,10 @@ def p_crossed_binary_operator(p):
                           | Tk_mmod
                           | Tk_mrdiv
                           | Tk_mrmod
-    """
-    pass
+    '''
 
-def p_boolean_binary_operator(p):
-    """
+def p_BooleanBinaryOperator(p):
+    '''
     BooleanBinaryOperator : Tk_eq
                           | Tk_neq
                           | Tk_leq
@@ -514,12 +642,19 @@ def p_boolean_binary_operator(p):
                           | Tk_less
                           | Tk_and
                           | Tk_or
-    """
-    pass
+    '''
+
+def p_lambda(p):
+    '''
+    lambda : 
+    '''
 
 # Error handling
 def p_error(p):
-    print "There was a SyntaxError. Offending token in %s, .type: %s" % (p,p.type)
+    if p is None:
+        print "There was a SyntaxError. Unexpected End Of File (EOF)."
+    else:
+        print "There was a SyntaxError. Unexpected token in %s." % p
 
 ################################################################################
 ############################ End of Grammar rules ##############################

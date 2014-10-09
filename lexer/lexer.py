@@ -18,15 +18,16 @@ class Lexer():
 
     _SUCCESS = 0
 
-    def __init__(self, module=None, inputString=None, debug=False, save_comments=False):
-        self.reset(module, inputString, debug, save_comments)
+    def __init__(self, module=None, inputString=None, debug=False, save_comments=False, silent=True):
+        self.reset(module, inputString, debug, save_comments, silent)
 
-    def reset(self, module=None, inputString=None, debug=False, save_comments=False):
+    def reset(self, module=None, inputString=None, debug=False, save_comments=False, silent=True):
         if inputString is not None and inputString != '':
             self._inputString = inputString
         self._module = module
         self._debug = debug
         self._save_comments = save_comments
+        self._silent = silent
         if module is not None:
             self.build()
 
@@ -51,7 +52,7 @@ class Lexer():
 
     def token(self):
         if not self._lexed:
-            self.lex(silent=True)
+            self.lex()
         try:
             return self._tokens_generator.next()
         except StopIteration:
@@ -62,7 +63,9 @@ class Lexer():
             token.makePLYable()
             yield token
 
-    def lex(self, silent=False):
+    def lex(self, silent=None):
+        if silent is not None:
+            self._silent = silent
         if self._module is None:
             raise TokensNotDefinedException()
         if self._inputString is None or self._inputString == '':
@@ -75,7 +78,7 @@ class Lexer():
             self._line_count += 1
         if len(self._found_errors) > 0:
             raise LexicographicalError(self._found_errors)
-        if not silent:
+        if not self._silent:
             for token in self._found_tokens:
                     print token
         self._lexed = True
