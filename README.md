@@ -21,8 +21,8 @@ Contents:
 1. [Example Trinity program](https://github.com/throoze/trinity#example-trinity-program)
 2. [Trinity Lexical components](https://github.com/throoze/trinity#trinity-lexical-components)
 3. [Trinity's grammar](https://github.com/throoze/trinity#trinity-grammar)
-4. [Precedence specification for Trinity operators]()
-5. [Known issues]()
+4. [Precedence specification for Trinity operators](https://github.com/throoze/trinity#precedence-specification-for-trinity-operators)
+5. [Known issues](https://github.com/throoze/trinity#known-issues)
 
 
 Example trinity program:
