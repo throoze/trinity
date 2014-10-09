@@ -514,13 +514,13 @@ def p_PrintableList_list(p):
     '''
     PrintableList : PrintableList Tk_comma Printable
     '''
-    p[0] = p[1] + [p[3]]
+    p[0] = List(p[1], p[3])
 
 def p_PrintableList_elem(p):
     '''
     PrintableList : Printable
     '''
-    p[0] = p[1]
+    p[0] = List(p[1])
 
 def p_Printable_expression(p):
     '''
@@ -643,7 +643,7 @@ def p_VariableDeclaration_assign(p):
 def p_Expression(p):
     '''
     Expression : UnaryOperatorExpression
-               | Expression BinaryOperator Expression
+               | BinaryExpression
                | LeftValue
                | FunctionCall
                | Literal
@@ -656,11 +656,116 @@ def p_Expression_strict(p):
     '''
     p[0] = p[2]
 
-def p_BinaryExpression(p):
+def p_BinaryExpression_plus(p):
     '''
-    Expression : Expression BinaryOperator Expression
+    BinaryExpression : Expression Tk_plus Expression
     '''
-    p[0] = BinaryExpression(p[1], p[2], p[3])
+
+def p_BinaryExpression_minus(p):
+    '''
+    BinaryExpression : Expression Tk_minus Expression
+    '''
+
+def p_BinaryExpression_times(p):
+    '''
+    BinaryExpression : Expression Tk_times Expression
+    '''
+
+def p_BinaryExpression_div(p):
+    '''
+    BinaryExpression : Expression Tk_div Expression
+    '''
+
+def p_BinaryExpression_mod(p):
+    '''
+    BinaryExpression : Expression Tk_mod Expression
+    '''
+
+def p_BinaryExpression_rdiv(p):
+    '''
+    BinaryExpression : Expression Tk_rdiv Expression
+    '''
+
+def p_BinaryExpression_rmod(p):
+    '''
+    BinaryExpression : Expression Tk_rmod Expression
+    '''
+
+def p_BinaryExpression_mplus(p):
+    '''
+    BinaryExpression : Expression Tk_mplus Expression
+    '''
+
+def p_BinaryExpression_mminus(p):
+    '''
+    BinaryExpression : Expression Tk_mminus Expression
+    '''
+
+def p_BinaryExpression_mtimes(p):
+    '''
+    BinaryExpression : Expression Tk_mtimes Expression
+    '''
+
+def p_BinaryExpression_mdiv(p):
+    '''
+    BinaryExpression : Expression Tk_mdiv Expression
+    '''
+
+def p_BinaryExpression_mmod(p):
+    '''
+    BinaryExpression : Expression Tk_mmod Expression
+    '''
+
+def p_BinaryExpression_mrdiv(p):
+    '''
+    BinaryExpression : Expression Tk_mrdiv Expression
+    '''
+
+def p_BinaryExpression_mrmod(p):
+    '''
+    BinaryExpression : Expression Tk_mrmod Expression
+    '''
+
+def p_BinaryExpression_eq(p):
+    '''
+    BinaryExpression : Expression Tk_eq Expression
+    '''
+
+def p_BinaryExpression_neq(p):
+    '''
+    BinaryExpression : Expression Tk_neq Expression
+    '''
+
+def p_BinaryExpression_geq(p):
+    '''
+    BinaryExpression : Expression Tk_geq Expression
+    '''
+
+def p_BinaryExpression_leq(p):
+    '''
+    BinaryExpression : Expression Tk_leq Expression
+    '''
+
+def p_BinaryExpression_great(p):
+    '''
+    BinaryExpression : Expression Tk_great Expression
+    '''
+
+def p_BinaryExpression_less(p):
+    '''
+    BinaryExpression : Expression Tk_less Expression
+    '''
+
+def p_BinaryExpression_and(p):
+    '''
+    BinaryExpression : Expression Tk_and Expression
+    '''
+
+def p_BinaryExpression_or(p):
+    '''
+    BinaryExpression : Expression Tk_or Expression
+    '''
+
 
 def p_UnaryOperatorExpression(p):
     '''
@@ -690,10 +795,7 @@ def p_Literal_false(p):
 
 def p_Literal_num(p):
     '''
-    Literal : Matrix
-            | Tk_true
-            | Tk_false
-            | Tk_num
+    Literal : Tk_num
     '''
     p[0] = NumberLiteral(p[1])
 
@@ -754,102 +856,6 @@ def p_ArgList_item(p):
     '''
     p[0] = p[1]
 
-def p_BinaryOperator(p):
-    '''
-    BinaryOperator : ArithmeticBinaryOperator
-                   | BooleanBinaryOperator
-    '''
-    p[0] = p[1]
-
-def p_ArithmeticBinaryOperator(p):
-    '''
-    ArithmeticBinaryOperator : OverloadedBinaryOperator
-                             | ScalarBinaryOperator
-                             | CrossedBinaryOperator
-    '''
-    p[0] = p[1]
-
-def p_OverloadedBinaryOperator_plus(p):
-    '''
-    OverloadedBinaryOperator : Tk_plus
-    '''
-
-def p_OverloadedBinaryOperator_minus(p):
-    '''
-    OverloadedBinaryOperator : Tk_minus
-    '''
-
-def p_OverloadedBinaryOperator_times(p):
-    '''
-    OverloadedBinaryOperator : Tk_times
-    '''
-
-def p_ScalarBinaryOperator_div(p):
-    '''
-    ScalarBinaryOperator : Tk_div
-    '''
-
-def p_ScalarBinaryOperator_mod(p):
-    '''
-    ScalarBinaryOperator : Tk_mod
-    '''
-
-def p_ScalarBinaryOperator_rdiv(p):
-    '''
-    ScalarBinaryOperator : Tk_rdiv
-    '''
-
-def p_ScalarBinaryOperator_rmod(p):
-    '''
-    ScalarBinaryOperator : Tk_rmod
-    '''
-
-def p_CrossedBinaryOperator_mplus(p):
-    '''
-    CrossedBinaryOperator : Tk_mplus
-    '''
-
-def p_CrossedBinaryOperator_mminus(p):
-    '''
-    CrossedBinaryOperator : Tk_mminus
-    '''
-
-def p_CrossedBinaryOperator_mtimes(p):
-    '''
-    CrossedBinaryOperator : Tk_mtimes
-    '''
-
-def p_CrossedBinaryOperator_mdiv(p):
-    '''
-    CrossedBinaryOperator : Tk_mdiv
-    '''
-
-def p_CrossedBinaryOperator_mmod(p):
-    '''
-    CrossedBinaryOperator : Tk_mmod
-    '''
-
-def p_CrossedBinaryOperator_mrdiv(p):
-    '''
-    CrossedBinaryOperator : Tk_mrdiv
-    '''
-
-def p_CrossedBinaryOperator_mrmod(p):
-    '''
-    CrossedBinaryOperator : Tk_mrmod
-    '''
-
-def p_BooleanBinaryOperator(p):
-    '''
-    BooleanBinaryOperator : Tk_eq
-                          | Tk_neq
-                          | Tk_leq
-                          | Tk_geq
-                          | Tk_great
-                          | Tk_less
-                          | Tk_and
-                          | Tk_or
-    '''
 
 def p_lambda(p):
     '''

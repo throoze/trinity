@@ -279,7 +279,7 @@ VariableDeclaration : Type Tk_ID Tk_scolon
 ```
 Expression : Tk_oparen Expression Tk_cparen
            | UnaryOperatorExpression
-           | Expression BinaryOperator Expression
+           | BinaryExpression
            | LeftValue
            | FunctionCall
            | Literal
@@ -290,6 +290,31 @@ UnaryOperatorExpression : Tk_minus Expression %prec UMINUS
                         | Matrix Tk_trans
                         | Tk_ID Tk_trans
                         | Tk_not Expression
+```
+
+```
+BinaryExpression : Expression Tk_plus Expression
+                 | Expression Tk_minus Expression
+                 | Expression Tk_times Expression
+                 | Expression Tk_div Expression
+                 | Expression Tk_mod Expression
+                 | Expression Tk_rdiv Expression
+                 | Expression Tk_rmod Expression
+                 | Expression Tk_mplus Expression
+                 | Expression Tk_mminus Expression
+                 | Expression Tk_mtimes Expression
+                 | Expression Tk_mdiv Expression
+                 | Expression Tk_mmod Expression
+                 | Expression Tk_mrdiv Expression
+                 | Expression Tk_mrmod Expression
+                 | Expression Tk_eq Expression
+                 | Expression Tk_neq Expression
+                 | Expression Tk_geq Expression
+                 | Expression Tk_leq Expression
+                 | Expression Tk_great Expression
+                 | Expression Tk_less Expression
+                 | Expression Tk_and Expression
+                 | Expression Tk_or Expression
 ```
 
 ```
@@ -325,51 +350,6 @@ Arguments : ArgList
 ```
 ArgList : Expression
         | ArgList Tk_comma Expression
-```
-
-```
-BinaryOperator : ArithmeticBinaryOperator
-               | BooleanBinaryOperator
-```
-
-```
-ArithmeticBinaryOperator : OverloadedBinaryOperator
-                         | ScalarBinaryOperator
-                         | CrossedBinaryOperator
-```
-
-```
-OverloadedBinaryOperator : Tk_plus
-                         | Tk_minus
-                         | Tk_times
-```
-
-```
-ScalarBinaryOperator : Tk_div
-                     | Tk_mod
-                     | Tk_rdiv
-                     | Tk_rmod
-```
-
-```
-CrossedBinaryOperator : Tk_mplus
-                      | Tk_mminus
-                      | Tk_mtimes
-                      | Tk_mdiv
-                      | Tk_mmod
-                      | Tk_mrdiv
-                      | Tk_mrmod
-```
-
-```
-BooleanBinaryOperator : Tk_eq
-                      | Tk_neq
-                      | Tk_leq
-                      | Tk_geq
-                      | Tk_great
-                      | Tk_less
-                      | Tk_and
-                      | Tk_or
 ```
 
 [Go to top](https://github.com/throoze/trinity#trinity)

@@ -32,10 +32,24 @@ class FormalParameter():
         self._type = data_type
         self._name = name
 
+class List():
+
+    def __init__(self, wrapped_list, trailing_elem=None):
+        if isinstance(wrapped_list, List) and isinstance(trailing_elem, List):
+            self._list = wrapped_list.asList() + trailing_elem.asList()
+        elif isinstance(wrapped_list, list) and isinstance(trailing_elem, list):
+            self._list = wrapped_list + trailing_elem
+        if trailing_elem not None:
+            if isinstance(wrapped_list, List):
+                self._list += wrapped_list.asList()
+            elif isinstance(wrapped_list, list):
+                self._list = wrapped_list
+
+    def asList(self):
+        return self._list
 
 class Type():
     pass
-
 
 class BooleanType(Type):
     pass
@@ -192,7 +206,7 @@ class BinaryExpression(Expression):
 
     def __init__(self, left, op, right):
         self._left = left
-        self._op = op
+        self._function = op
         self._right = right
 
 
@@ -222,3 +236,17 @@ class FunctionCall(Expression):
         self._id = identifier
         self._arguments = args
 
+class Sum(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(Sum, self).__init__(left, lambda x,y: x + y, right)
+
+class Substraction(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(Sum, self).__init__(left, lambda x,y: x - y, right)
+
+class Times(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(Sum, self).__init__(left, lambda x,y: x * y, right)
