@@ -203,6 +203,7 @@ SimpleStatement : Print
                 | Read
                 | Assignment
                 | Return
+                | DiscardedExpression
 ```
 
 ```
@@ -224,17 +225,21 @@ Read : Tk_read Tk_ID Tk_scolon
 ```
 
 ```
-Assignment : Tk_set LeftSide Tk_assign Expression Tk_scolon
+Assignment : Tk_set LeftValue Tk_assign Expression Tk_scolon
 ```
 
 ```
-LeftSide : Tk_ID
-         | Tk_ID Tk_obrack Tk_num Tk_cbrack
-         | Tk_ID Tk_obrack Tk_num Tk_comma Tk_num Tk_cbrack
+LeftValue : Tk_ID
+          | Tk_ID Tk_obrack Tk_num Tk_cbrack
+          | Tk_ID Tk_obrack Tk_num Tk_comma Tk_num Tk_cbrack
 ```
 
 ```
 Return : Tk_ret Expression Tk_scolon
+```
+
+```
+DiscardedExpression : Expression Tk_scolon
 ```
 
 ```
@@ -275,7 +280,7 @@ VariableDeclaration : Type Tk_ID Tk_scolon
 Expression : Tk_oparen Expression Tk_cparen
            | UnaryOperatorExpression
            | Expression BinaryOperator Expression
-           | LeftSide
+           | LeftValue
            | FunctionCall
            | Literal
 ```
