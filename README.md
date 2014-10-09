@@ -27,32 +27,34 @@ Example trinity program:
 ------------------------
 [Go to top](https://github.com/throoze/trinity#trinity)
 
+    # file: example.ty
     program
-    use
-      matrix(2,2) m;  # all elements initialized as '0'
-      number x;       # initialized as '0'
-      boolean b;      # initialized as 'false'
-    in
-      set m = { 1, 2
-              : 3, 4 };
+      use
+        matrix(2,2) m;  # all elements initialized as '0'
+        number x;       # initialized as '0'
+        boolean b;      # initialized as 'false'
+      in
+        set m = { 1, 2
+                : 3, 4 };
 
-      read x;
+        read x;
 
-      for i in m do
-        if i % 2 == 0 then
-          # if 'i' is even
-          print i;
-        else
-          print x;
-          read x;
-          set b = not b;
+        for i in m do
+          if i % 2 == 0 then
+            # if 'i' is even
+            print i;
+          else
+            print x;
+            read x;
+            set b = not b;
+          end;
         end;
-      end;
 
-      if b then
-        print i;
-      else
-        print "b is a lie";
+        if b then
+          print "b is an honest guy!";
+        else
+          print "b is a lie";
+        end;
       end;
     end;
 
