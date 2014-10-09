@@ -21,6 +21,8 @@ Contents:
 1. [Example Trinity program](https://github.com/throoze/trinity#example-trinity-program)
 2. [Trinity Lexical components](https://github.com/throoze/trinity#trinity-lexical-components)
 3. [Trinity's grammar](https://github.com/throoze/trinity#trinity-grammar)
+4. [Precedence specification for Trinity operators]()
+5. [Known issues]()
 
 
 Example trinity program:
@@ -367,15 +369,48 @@ BooleanBinaryOperator : Tk_eq
 
 [Go to top](https://github.com/throoze/trinity#trinity)
 
+Precedence specification for Trinity operators
+----------------------------------------------
+[Go to top](https://github.com/throoze/trinity#trinity)
 
+Trinity's syntactical analyzer was built using PLY's `yacc` parser generator.
+Because of the ambiguity of the expressions portion of the grammar, further
+precedence specification is needed in order to parse Trinity programs properly.
+Next is the precedence specification, using the same symbols that were used in
+the grammar, in the same way that it's feeded to `yacc`.
 
+    precedence = (
+        ('left', 'Tk_plus', 'Tk_minus',
+                 'Tk_mplus', 'Tk_mminus'
+                 ),
+        ('left', 'Tk_times', 'Tk_rdiv', 'Tk_rmod', 'Tk_div', 'Tk_mod',
+                 'Tk_mtimes', 'Tk_mrdiv', 'Tk_mrmod', 'Tk_mdiv', 'Tk_mmod'
+                 ),
+        ('left', 'Tk_trans'),
+        ('nonassoc', 'Tk_eq', 'Tk_neq', 'Tk_geq', 'Tk_leq', 'Tk_great', 'Tk_less'),
+        ('left', 'Tk_or'),
+        ('left', 'Tk_and'),
+        ('right', 'UMINUS'),
+        ('right', 'Tk_not')
+    )
 
+Last tuples are the ones that have most precedence. The first component of the
+tuple indicates the associativity of the operators contained in that tuple. The
+next elements are the symbols at that level of precedence.
 
+Notice the `UMINUS` symbol. It can be interpreted as an alias to the unary
+minus operation, specified in the grammar with the `%prec` keyword.
 
+[Go to top](https://github.com/throoze/trinity#trinity)
 
+Known issues
+------------
+[Go to top](https://github.com/throoze/trinity#trinity)
 
+Next a list of known issues or bugs of the Trinity interpreter.
 
+1. Because of the ambiguity of the expressions portion of the grammar, there
+   are 22 shift/reduce conflicts (one for each operator) in the parser
+   generator.
 
-
-
-    
+[Go to top](https://github.com/throoze/trinity#trinity)
