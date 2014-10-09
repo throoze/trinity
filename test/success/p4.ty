@@ -1,0 +1,16 @@
+# Prueba lenguaje trinity
+
+program
+  use
+      number x;
+  in
+      set x=2;
+      if x==2 then
+         print " x == 2 \n";
+      else
+         print " x \= 2 \\ tambien comillas \"";
+      end; # aqui termina el if
+      set x=x+3;
+      set x=x-2;
+  end;
+end;
