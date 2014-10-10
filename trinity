@@ -14,9 +14,12 @@
 #
 # where program.ty is a file with theprogram to be analyzed.
 # ------------------------------------------------------------
-from lexer.exceptions import LexicographicalError
 from lexer.lexer import Lexer
+from lexer.exceptions import LexicographicalError
+
 from lang import lexical_specs, syntactic_specs
+from lang.exceptions import TrinitySyntaxError
+
 import ply.yacc as yacc
 import sys
 
@@ -25,6 +28,7 @@ ERR_BAD_USAGE = 1
 ERR_BAD_FILENAME = 2
 ERR_IO_ERROR = 3
 ERR_LEXICOGRAPHICAL_ERROR = 4
+ERR_SYNTAX_ERROR = 5
 
 usage = ' Usage:\n\n\t$ ./trinity program.ty\n\n where "program.ty" is a file with the program to be analyzed.'
 
@@ -51,10 +55,13 @@ lexer = Lexer(module=lexical_specs, inputString=inputString)
 #if not lexer.lex(silent=True):
 parser = yacc.yacc(module=syntactic_specs)
 try:
-    result = parser.parse(lexer=lexer)
-    if result is not None:
-        print result
+    ast = parser.parse(lexer=lexer)
+    if ast is not None:
+        print ast
     exit(SUCCESS)
-except LexicographicalError as e:
-    print e
+except LexicographicalError as le:
+    print le
     exit(ERR_LEXICOGRAPHICAL_ERROR)
+except TrinitySyntaxError as se:
+    print se
+    exit(ERR_SYNTAX_ERROR)

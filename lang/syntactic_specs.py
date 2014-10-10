@@ -10,7 +10,10 @@
 # Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
 # ------------------------------------------------------------
+from exceptions import TrinitySyntaxError
+
 from lexical_specs import token_classes
+
 from ast import *
 
 ##########
@@ -567,11 +570,12 @@ def p_lambda(p):
 
 # Error handling
 def p_error(p):
+    error = ""
     if p is None:
-        print "There was a SyntaxError. Unexpected End Of File (EOF)."
+        error = "Unexpected End Of File (EOF)."
     else:
-        print "There was a SyntaxError. Unexpected token in %s." % p
-    return None
+        error = "Unexpected token in %s." % p
+    raise TrinitySyntaxError(error)
 
 ################################################################################
 ############################ End of Grammar rules ##############################
