@@ -211,8 +211,8 @@ Print : Tk_print PrintableList Tk_scolon
 ```
 
 ```
-PrintableList : Printable
-              | PrintableList Tk_comma Printable
+PrintableList : PrintableList Tk_comma Printable
+              | Printable
 ```
 
 ```
@@ -250,12 +250,8 @@ ComplexStatement : If
 ```
 
 ```
-If : Tk_if Expression Tk_then Statements Tk_else Statements Tk_end Tk_scolon
-   | Tk_if Expression Tk_then Statements Tk_end Tk_scolon
-```
-
-```
-While : Tk_while Expression Tk_do Statements Tk_end Tk_scolon
+If : Tk_if Expression Tk_then Statements Tk_end Tk_scolon
+   | Tk_if Expression Tk_then Statements Tk_else Statements Tk_end Tk_scolon
 ```
 
 ```
@@ -263,12 +259,16 @@ For : Tk_for Tk_ID Tk_in Expression Tk_do Statements Tk_end Tk_scolon
 ```
 
 ```
+While : Tk_while Expression Tk_do Statements Tk_end Tk_scolon
+```
+
+```
 Block : Tk_use VariableDeclarations Tk_in Statements Tk_end Tk_scolon
 ```
 
 ```
-VariableDeclarations : VariableDeclaration
-                     | VariableDeclarations VariableDeclaration
+VariableDeclarations : VariableDeclarations VariableDeclaration
+                     | lambda
 ```
 
 ```
@@ -283,6 +283,12 @@ Expression : Tk_oparen Expression Tk_cparen
            | LeftValue
            | FunctionCall
            | Literal
+	   | ProjectedMatrix
+```
+
+```
+ProjectedMatrix : Matrix Tk_obrack  Expression Tk_comma Expression Tk_cbrack
+                | Matrix Tk_obrack  Expression  Tk_cbrack
 ```
 
 ```
@@ -334,8 +340,8 @@ RowList : Row
 ```
 
 ```
-Row : Tk_num                # TODO: Check if it's a number or an expression
-    | Row Tk_comma Tk_num
+Row : Expression
+    | Row Tk_comma Expression
 ```
 
 ```
@@ -352,6 +358,10 @@ ArgList : Expression
         | ArgList Tk_comma Expression
 ```
 
+```
+# empty rule
+lambda : 
+```
 [Go to top](https://github.com/throoze/trinity#trinity)
 
 Precedence specification for Trinity operators

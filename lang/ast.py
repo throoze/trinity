@@ -10,14 +10,14 @@
 # ------------------------------------------------------------
 
 
-class Trinity():
+class Trinity(object):
 
     def __init__(self, functions, statements):
         self._functions  = functions
         self._statements = statements
 
 
-class FunctionDefinition():
+class FunctionDefinition(object):
 
     def __init__(self, name, params, return_type, statements):
         self._name       = name
@@ -26,30 +26,16 @@ class FunctionDefinition():
         self._statements = statements
 
 
-class FormalParameter():
+class FormalParameter(object):
 
     def __init__(self, data_type, name):
         self._type = data_type
         self._name = name
 
-class List():
 
-    def __init__(self, wrapped_list, trailing_elem=None):
-        if isinstance(wrapped_list, List) and isinstance(trailing_elem, List):
-            self._list = wrapped_list.asList() + trailing_elem.asList()
-        elif isinstance(wrapped_list, list) and isinstance(trailing_elem, list):
-            self._list = wrapped_list + trailing_elem
-        if trailing_elem not None:
-            if isinstance(wrapped_list, List):
-                self._list += wrapped_list.asList()
-            elif isinstance(wrapped_list, list):
-                self._list = wrapped_list
-
-    def asList(self):
-        return self._list
-
-class Type():
+class Type(object):
     pass
+
 
 class BooleanType(Type):
     pass
@@ -78,7 +64,7 @@ class RowVectorType(MatrixType):
         super(RowVectorType, self).__init__(1,c)
 
 
-class Statement():
+class Statement(object):
     pass
 
 
@@ -88,11 +74,11 @@ class PrintStatement(Statement):
         self._printables = printables
 
 
-class Printable():
+class Printable(object):
     pass
 
 
-class Literal():
+class Literal(object):
     pass
 
 
@@ -125,19 +111,28 @@ class Variable(Expression):
         self._id = identifier
 
 
-class VectorAccessedVariable(Variable):
+class ProjectedMatrix(Expression):
 
-    def __init__(self, identifier, component):
-        super(VectorAccessedVariable, self).__init__(identifier)
+    def __init__(self, matrix, row, col):
+        self._row = row
+        self._col = col
+
+class ProjectedVector(ProjectedMatrix):
+
+    def __init__(self, matrix, component):
+        super(ProjectedVector, self).__init__(matrix,None,None)
         self._component = component
 
 
-class MatrixAccessedVariable(Variable):
 
-    def __init__(self, identifier, row, col):
-        super(MatrixAccessedVariable, self).__init__(identifier)
-        self._row = row
-        self._col = col
+class ProjectedVariable(Expression):
+
+    def __init__(self, matrix, row, col=None):
+        if col is None :
+            self._component=row
+        else:
+            self._row = row
+            self._col = col
 
 
 class ReturnStatement(Statement):
@@ -152,18 +147,13 @@ class DiscardedExpression(Statement):
         self._expression = expression
 
 
-class IfThenStatement(Statement):
+class IfStatement(Statement):
 
-    def __init__(self, condition, statements):
+    def __init__(self, condition, statements,alt_statements=None):
         self._condition = condition
         self._statements = statements
 
 
-class IfThenElseStatement(IfThenStatement):
-
-    def __init__(self, condition, statements, alt_statements):
-        super(IfThenElseStatement, self).__init__(condition, statements)
-        self._alt_statements = alt_statements
 
 
 class ForStatement(Statement):
@@ -188,7 +178,7 @@ class BlockStatement(Statement):
         self._statements = statements
 
 
-class VariableDeclaration():
+class VariableDeclaration(object):
 
     def __init__(self, data_type, identifier):
         self._type = data_type
@@ -205,6 +195,7 @@ class VariableDeclarationAssign(VariableDeclaration):
 class BinaryExpression(Expression):
 
     def __init__(self, left, op, right):
+        super(BinaryExpression, self).__init__()
         self._left = left
         self._function = op
         self._right = right
@@ -241,12 +232,150 @@ class Sum(BinaryExpression):
     def __init__(self, left, right):
         super(Sum, self).__init__(left, lambda x,y: x + y, right)
 
-class Substraction(BinaryExpression):
+class Subtraction(BinaryExpression):
 
     def __init__(self, left, right):
-        super(Sum, self).__init__(left, lambda x,y: x - y, right)
+        super(Subtraction, self).__init__(left, lambda x,y: x - y, right)
 
 class Times(BinaryExpression):
 
     def __init__(self, left, right):
-        super(Sum, self).__init__(left, lambda x,y: x * y, right)
+        super(Times, self).__init__(left, lambda x,y: x * y, right)
+
+class Division(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(Division, self).__init__(left, lambda x,y: x // y, right)
+
+
+class Modulus(BinaryExpression):
+    
+    def __init__(self, left, right):
+        super(Modulus, self).__init__(left, lambda x,y: x % y, right)
+
+class RealDivision(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(RealDivision, self).__init__(left, lambda x,y: x / y, right)
+
+
+class RealModulus(BinaryExpression):
+    
+    def __init__(self, left, right):
+        super(RealModulus, self).__init__(left, lambda x,y: x % y, right)
+
+
+class MatrixSum(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(MatrixSum, self).__init__(left, None, right)
+
+
+class MatrixSubtraction(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(MatrixSubtraction, self).__init__(left, None, right)
+
+
+class MatrixTimes(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(MatrixTimes, self).__init__(left, None, right)
+
+
+class MatrixDivision(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(MatrixDivision, self).__init__(left, None, right)
+
+
+class MatrixModulus(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(MatrixModulus, self).__init__(left, None, right)
+
+
+class MatrixRealDivision(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(MatrixRealDivision, self).__init__(left, None, right)
+
+
+class MatrixRealModulus(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(MatrixRealModulus, self).__init__(left, None, right)
+
+
+class Equivalence(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(Equivalence, self).__init__(left, lambda x,y: x == y, right)
+
+
+class NotEquivalence(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(NotEquivalence, self).__init__(left, lambda x,y: x != y, right)
+
+
+class GreaterOrEqual(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(GreaterOrEqual, self).__init__(left, lambda x,y: x >= y, right)
+
+
+class LessOrEqual(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(LessOrEqual, self).__init__(left, lambda x,y: x <= y, right)
+
+
+class Greater(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(Greater, self).__init__(left, lambda x,y: x > y, right)
+
+
+class Less(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(Less, self).__init__(left, lambda x,y: x < y, right)
+
+
+class And(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(And, self).__init__(left, lambda x,y: x and y, right)
+
+
+class Or(BinaryExpression):
+
+    def __init__(self, left, right):
+        super(Or, self).__init__(left, lambda x,y: x or y, right)
+
+
+class UnaryExpression(Expression):
+
+    def __init__(self, op, operand):
+        super(UnaryExpression, self).__init__()
+        self._function = op
+        self._operand = operand
+
+
+class UnaryMinus(UnaryExpression):
+    
+    def __init__(self, operand):
+        super(UnaryMinus, self).__init__(lambda x: - x, operand)
+
+
+class Transpose(UnaryExpression):
+    
+    def __init__(self, operand):
+        super(Transpose, self).__init__(None, operand)
+
+
+class Not(UnaryExpression):
+    
+    def __init__(self, operand):
+        super(Not, self).__init__(lambda x: not x, operand)
