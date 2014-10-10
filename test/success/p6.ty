@@ -1,8 +1,11 @@
 #Test 2 
 
-function fun ( number n2 , boolean b3 ) return boolean
+function fun ( number b2 , boolean b3 ) return boolean
 begin
-  if ((b3) &( n2 mod 2==true)) then
+  # Testing expressions
+  false & not true | true;
+  (false & true) | true;
+  if ((b3) &( (n2 mod 2)==0)==true) then
     set n2 = n2-2;
     set n2 = n2*2;
     if ((n2 > 05) | (n2<= 30)) then 
@@ -11,7 +14,43 @@ begin
   end;
 end;
 
+function barFun ( number n2 ) return matrix(2,2)
+begin
+  use
+    number n;
+  in
+    read n;
+    print "Expression:", n * n2;
+    return { n * n2, n + n2
+           : n + n2, n * n2 };
+  end;
+end;
+
+function void1() return boolean
+begin
+  use
+  in
+  end;
+end;
+
+function void2() return boolean
+begin
+end;
+
+function rowFun(number n, number e) return row(1)
+begin
+  return { e, e, e }[n+1];
+end;
+
+function colFun(number n, number e) return col(1)
+begin
+  return { e
+         : e
+         : e }[2+n];
+end;
 program
+
+  print "Hello", " World!!!";
 
   use 
       
@@ -24,6 +63,9 @@ program
       
     set m= {1, 1.42: 1 ,1};
     read n;
+
+    void1();
+    barFun(42);
     
     for i in m do
       if i mod 2 == 0 then
@@ -31,6 +73,10 @@ program
       else
         print n;
         read n;
+        bar(n);
+        42;
+        1.61803399;
+        (n + 5.0 * (-2));
         set b = not b;
         set b1= true ;
        

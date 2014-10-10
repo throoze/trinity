@@ -399,7 +399,7 @@ def p_FuncDefinitions_list(p):
     '''
     FuncDefinitions : FuncDefinitions FuncDefinition
     '''
-    p[0] = p[1].append(p[2])
+    p[0] = p[1] + [p[2]]
 
 def p_FuncDefinitions_lambda(p):
     '''
@@ -437,7 +437,7 @@ def p_FParamList_list(p):
     '''
     FParamList : FParamList Tk_comma FormalParam
     '''
-    p[0] = p[1].append(p[3])
+    p[0] = p[1] + p[3]
 
 def p_FormalParam(p):
     '''
@@ -514,7 +514,7 @@ def p_PrintableList_list(p):
     '''
     PrintableList : PrintableList Tk_comma Printable
     '''
-    p[0] = p[1].append(p[3]) 
+    p[0] = p[1] + [p[3]]
 
 def p_PrintableList_elem(p):
     '''
@@ -861,7 +861,7 @@ def p_RowList_list(p):
     '''
     RowList : RowList Tk_colon Row
     '''
-    p[0] = p[1].append(p[3])
+    p[0] = p[1] + [p[3]]
 
 def p_Row_exp(p):
     '''
@@ -873,7 +873,7 @@ def p_Row(p):
     '''
     Row : Row Tk_comma Expression
     '''
-    p[0] = p[1].append(p[3])
+    p[0] = p[1] + [p[3]]
 
 def p_FunctionCall(p):
     '''
@@ -913,6 +913,7 @@ def p_error(p):
         print "There was a SyntaxError. Unexpected End Of File (EOF)."
     else:
         print "There was a SyntaxError. Unexpected token in %s." % p
+    return None
 
 ################################################################################
 ############################ End of Grammar rules ##############################
