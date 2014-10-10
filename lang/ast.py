@@ -10,39 +10,87 @@
 # ------------------------------------------------------------
 
 
+
 class Trinity(object):
+
+    SPACE="    "
 
     def __init__(self, functions, statements):
         self._functions  = functions
         self._statements = statements
 
+    def getIndent(self,num):
+        return "    " * num 
+        
+    def __str__(self):
+        string = "Trinity : \n"
+        if self._functions is not None:
+            for fun in self._functions :
+                string += fun.printAST(1)
+        
+        string += self.SPACE + "Program : \n " 
+        
+        if self._statements is not None:
+            for state in self._statements : 
+                string += state.printAST(2)
+            string += "    end \n"
+        string += "end \n"
+        return string
 
-class FunctionDefinition(object):
+class FunctionDefinition(Trinity):
 
     def __init__(self, name, params, return_type, statements):
         self._name       = name
         self._params     = params
         self._type       = return_type
         self._statements = statements
+    
+    def printAST(self,level):
+        
+        string =getIndent(level) + "Function Declaration : \n"
+        string +=getIndent(level) + self.SPACE +"Name:"
+        string +=self._name + "\n"
+        if self._params is not None:
+            string += self.SPACE + "Parameter List : \n" 
+            for param in self.params :
+                string += getIndent(level) + param.printAST(level + 1)
+        string += getIndent(level) + "Return Type: " + self._type + "\n"
+        for state in self._statements :
+            string +=getIndent(level) + state.printAST(1)
+        string += getIndent(level) + "end \n"
+        return string
 
-
-class FormalParameter(object):
+class FormalParameter(Trinity):
 
     def __init__(self, data_type, name):
         self._type = data_type
         self._name = name
 
+    def printAST(self,level):
+        
+        string  = getIndent(level) + "Parameter: \n"
+        string += getIndent(level) + "  Type: "+ self._type.printAST(level) + "\n"
+        string += getIndent(level) + "  Name: "+ self._name + "\n"
+        return string
 
-class Type(object):
-    pass
+class Type(Trinity):
+
+    def __init__(self):
+        pass
 
 
 class BooleanType(Type):
-    pass
+    
+    def printAST(self,level):
+        string = "Boolean"
+        return string
 
 
 class NumberType(Type):
-    pass
+
+    def printAST(self,level):
+        string = "Number"
+        return string
 
 
 class MatrixType(Type):
@@ -50,7 +98,11 @@ class MatrixType(Type):
     def __init__(self, r, c):
         self._rows = r
         self._cols = c
-
+    
+    def printAST(self,level):
+        string= "Matrix(%d,%d)" % (self._rows,self._cols)
+        return string
+    
 
 class ColumnVectorType(MatrixType):
 
@@ -64,8 +116,9 @@ class RowVectorType(MatrixType):
         super(RowVectorType, self).__init__(1,c)
 
 
-class Statement(object):
-    pass
+class Statement(Trinity):
+    def __init__(self):
+        pass
 
 
 class PrintStatement(Statement):
@@ -78,11 +131,16 @@ class Printable(object):
     pass
 
 
-class Literal(object):
+class Expression(Trinity,Printable):
+    
+    def __init__(self):
+        pass
+
+class Literal(Expression):
     pass
 
 
-class StringLiteral(Literal,Printable):
+class StringLiteral(Literal):
 
     def __init__(self, value):
         self._value = value
@@ -99,11 +157,7 @@ class AssignmentStatement(Statement):
     def __init__(self, lvalue, rvalue):
         self._lvalue = lvalue
         self._rvalue = rvalue
-
-
-class Expression(Printable):
-    pass
-
+    
 
 class Variable(Expression):
     
@@ -178,7 +232,7 @@ class BlockStatement(Statement):
         self._statements = statements
 
 
-class VariableDeclaration(object):
+class VariableDeclaration(Trinity):
 
     def __init__(self, data_type, identifier):
         self._type = data_type
@@ -379,3 +433,6 @@ class Not(UnaryExpression):
     
     def __init__(self, operand):
         super(Not, self).__init__(lambda x: not x, operand)
+
+
+        
