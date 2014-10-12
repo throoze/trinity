@@ -1,0 +1,91 @@
+function HolaMundo( number n ) return number
+begin
+
+	print "HolaMundo" ; 
+
+
+	return n;
+
+end;
+
+function Vacia() return boolean
+begin
+  use
+     boolean  b;
+  in
+  
+  return b;
+
+
+  end;
+
+end;
+
+function Vacia2( number n ) return boolean
+begin
+  use
+     boolean  b;
+  in
+  
+	if n % 2 == 0 then
+   	   return b==true;
+  	else
+	   return b==false;
+  	end;
+  
+  end;
+
+end;
+
+program
+    use
+	number n;
+       	matrix(2,2) m={1,1:1,1};
+       	row(3) rw;
+       	col(3) cl={1,1,1};  
+    in
+	read n;
+    	use
+	   number x;
+	in 
+	   set x=n;
+	   set m[1,1]=x;
+	   set m[ x+1 , x+1 ] = x+1;
+	   for x in rw do
+	       if (((x > 0) &  (x <100)) | ( x >= 0 ) & ( x <= 100 )) then
+	       	  set x=42;
+	       else
+	          set x=1337.1337;
+	       end;
+	   end;
+
+	   use 
+	     number i=0;
+	   in
+	      while ( (rw[1] > i)  | (i == 100) ) do
+	   	 set i=i+1;
+		 use 
+		     number x=0;
+		     boolean b=true;
+		 in 
+		    set x=1;
+		    set cl[1]= x*i + rw[1];
+		    if b == true & Vacia2(2) then 
+		       print (not b),b ; 
+		       
+		    end;
+		 end;
+               end;
+	    end; 
+
+	    print rw' ;
+	    print -x,x,"valoreS";
+	    
+	    set x= x div n ;
+	    set cl[x]= rw .+. x .-. HolaMundo(10) ;
+	    set m[1,x]= rw[1] +  2 * 3;
+	    
+  	 end;
+      end;
+end;
+	

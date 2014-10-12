@@ -294,7 +294,7 @@ ProjectedMatrix : Matrix Tk_obrack  Expression Tk_comma Expression Tk_cbrack
 ```
 UnaryOperatorExpression : Tk_minus Expression %prec UMINUS
                         | Matrix Tk_trans
-                        | Tk_ID Tk_trans
+                        | Expression Tk_trans
                         | Tk_not Expression
 ```
 
