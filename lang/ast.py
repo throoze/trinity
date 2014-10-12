@@ -258,15 +258,22 @@ class ProjectedVariable(Expression):
     def printAST(self, level):
         string  = "%sProjected Variable Matrix or Vector:" % self.getIndent(level)
         if self._component is not None:
-            string += "\n%sProjection: [%d]" % (self.getIndent(level+1), self._component)
+            string += "\n%sProjection: " % self.getIndent(level+1)
+            string += "[" + self._component.printAST(0) + "]" 
         else:
-            string += "\n%sProjection: [%d,%d]" % (
-                self.getIndent(level+1),
-                self._row,
-                self._col
-            )
-        string += "\n%sVector:" % self.getIndent(level+1)
-        string += "\n%s" % self._matrix.printAST(level+2)
+            string += "\n"
+            string += self.getIndent(level+1) +"Projection:" + " [" 
+            string += self._row.printAST(0)+","
+            string += self._col.printAST(0)+"]"
+            
+
+            # % (
+            #     self.getIndent(level+1),
+            #     self._row,
+            #     self._col
+            
+        #string += "\n%sVector:" % self.getIndent(level+1)
+        #string += "\n%s" % self._matrix.printAST(level+2)
         return string
 
 
@@ -507,8 +514,8 @@ class Times(BinaryExpression):
 class Division(BinaryExpression):
 
     def __init__(self, left, right):
-        self._operation = "Division"
-
+        super(Division,self).__init__(left, lambda x,y: x//y, right)
+        self._operation = "Division" 
 
 class Modulus(BinaryExpression):
     
@@ -646,7 +653,7 @@ class UnaryExpression(Expression):
     def printAST(self, level):
         string  = "%s%s:" % (self.getIndent(level), self._operation)
         string += "\n%sOperand:" % self.getIndent(level+1)
-        string += "\n%s" % self._operand.printAST(level+2)
+        string += "\n" + self._operand.printAST(level+2)
         return string
 
 
@@ -655,15 +662,15 @@ class UnaryMinus(UnaryExpression):
     def __init__(self, operand):
         super(UnaryMinus, self).__init__(lambda x: - x, operand)
         self._operation = "Unary Minus"
-
+        
 
 class Transpose(UnaryExpression):
     
     def __init__(self, operand):
         super(Transpose, self).__init__(None, operand)
         self._operation = "Matrix Transpose"
-
-
+   
+        
 class Not(UnaryExpression):
     
     def __init__(self, operand):

@@ -215,13 +215,13 @@ def p_LeftValue_simple(p):
 
 def p_LeftValue_vector_access(p):
     '''
-    LeftValue : Tk_ID Tk_obrack Tk_num Tk_cbrack
+    LeftValue : Tk_ID Tk_obrack Expression Tk_cbrack
     '''
     p[0] = ProjectedVariable(p[1], p[3])
 
 def p_LeftValue_matrix_access(p):
     '''
-    LeftValue : Tk_ID Tk_obrack Tk_num Tk_comma Tk_num Tk_cbrack
+    LeftValue : Tk_ID Tk_obrack Expression Tk_comma Expression Tk_cbrack
     '''
     p[0] = ProjectedVariable(p[1], p[3], p[5])
 
@@ -339,9 +339,17 @@ def p_UnaryOperatorExpression_minus(p):
 def p_UnaryOperatorExpression_trans(p):
     '''
     UnaryOperatorExpression : Matrix Tk_trans
-                            | Tk_ID Tk_trans
+                            
     '''
     p[0] = Transpose(p[1])
+
+def p_UnaryOperatorExpression_trans_id(p):
+    '''
+    UnaryOperatorExpression : Tk_ID Tk_trans
+                            
+    '''
+    p[0] = Transpose(p[1])
+
 
 def p_UnaryOperatorExpression_not(p):
     '''
