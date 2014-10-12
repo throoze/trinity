@@ -345,7 +345,7 @@ def p_UnaryOperatorExpression_trans(p):
 
 def p_UnaryOperatorExpression_trans_id(p):
     '''
-    UnaryOperatorExpression : Tk_ID Tk_trans
+    UnaryOperatorExpression : Expression Tk_trans
                             
     '''
     p[0] = Transpose(p[1])
