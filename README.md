@@ -290,7 +290,7 @@ Expression : Tk_oparen Expression Tk_cparen
            | LeftValue
            | FunctionCall
            | Literal
-	         | ProjectedMatrix
+           | ProjectedMatrix
 ```
 
 ```
