@@ -26,19 +26,22 @@ tokens = [ token().__class__.__name__ for token in token_classes[1:] ]
 ################################################################################
 
 precedence = (
+    
+    ('left', 'Tk_or'),
+    ('left', 'Tk_and'),
+    ('nonassoc', 'Tk_eq', 'Tk_neq', 'Tk_geq', 'Tk_leq', 'Tk_great', 'Tk_less'),
+     ('right', 'Tk_not'),
     ('left', 'Tk_plus', 'Tk_minus',
              'Tk_mplus', 'Tk_mminus'
              ),
     ('left', 'Tk_times', 'Tk_rdiv', 'Tk_rmod', 'Tk_div', 'Tk_mod',
              'Tk_mtimes', 'Tk_mrdiv', 'Tk_mrmod', 'Tk_mdiv', 'Tk_mmod'
              ),
-    ('left', 'Tk_trans'),
-    ('nonassoc', 'Tk_eq', 'Tk_neq', 'Tk_geq', 'Tk_leq', 'Tk_great', 'Tk_less'),
-    ('left', 'Tk_or'),
-    ('left', 'Tk_and'),
+   
     ('right', 'UMINUS'),
-    ('right', 'Tk_not')
-)
+    ('left', 'Tk_trans')
+
+   )
 
 ################################################################################
 ################### End of Precedence and associative rules ####################
