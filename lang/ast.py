@@ -141,7 +141,7 @@ class PrintStatement(Statement):
         if self._printables is not None:
             string += "\n" + self._printables[0].printAST(level+2)
             for printable in self._printables[1:]:
-                string += ",\n" + printable.printAST(level+2)
+                string += "\n" + printable.printAST(level+2)
         return string
 
 
@@ -213,18 +213,27 @@ class ProjectedMatrix(Expression):
 
     def __init__(self, matrix, row, col):
         self._matrix = matrix
+        self._component = None
         self._row = row
         self._col = col
 
     def printAST(self, level):
-        string  = "%sProjected Literal Matrix:" % self.getIndent(level)
-        string += "\n%sProjection: [%d,%d]" % (
-            self.getIndent(level+1),
-            self._row,
-            self._col
-        )
-        string += "\n%sMatrix:" % self.getIndent(level+1)
+        if self._component is not None:
+            string  = "%sProjected Literal Vector:" % self.getIndent(level)
+        else:
+            string  = "%sProjected Literal Matrix:" % self.getIndent(level)
+        string += "\n%sMatrix: " % self.getIndent(level+1)
         string += "\n%s" % self._matrix.printAST(level+2)
+        string += "\n%sProjection: " % self.getIndent(level+1)
+        if self._component is not None:
+            string += "\n%sUnique component: " % self.getIndent(level+2)
+            string += "\n%s" % self._component.printAST(level+3)
+        else:
+            string += "\n%sFirst component:" % self.getIndent(level+2)
+            string += "\n%s" % self._row.printAST(level+3)
+            string += "\n%sSecond component:" % self.getIndent(level+2)
+            string += "\n%s" % self._col.printAST(level+3)
+        return string
         return string
 
 class ProjectedVector(ProjectedMatrix):
@@ -233,19 +242,12 @@ class ProjectedVector(ProjectedMatrix):
         super(ProjectedVector, self).__init__(matrix,None,None)
         self._component = component
 
-    def printAST(self, level):
-        string  = "%sProjected Literal Vector:" % self.getIndent(level)
-        string += "\n%sProjection:" % self.getIndent(level+1)
-        string += "\n%s" % self._component.printAST(level+2)
-        string += "\n%sVector:" % self.getIndent(level+1)
-        string += "\n%s" % self._matrix.printAST(level+2)
-        return string
-
 
 
 class ProjectedVariable(Expression):
 
     def __init__(self, matrix, row, col=None):
+        self._matrix = matrix
         if col is None :
             self._component = row
             self._row = None
@@ -257,23 +259,17 @@ class ProjectedVariable(Expression):
 
     def printAST(self, level):
         string  = "%sProjected Variable Matrix or Vector:" % self.getIndent(level)
+        string += "\n%sMatrix: " % self.getIndent(level+1)
+        string += "\n%s" % self._matrix.printAST(level+2)
+        string += "\n%sProjection: " % self.getIndent(level+1)
         if self._component is not None:
-            string += "\n%sProjection: " % self.getIndent(level+1)
-            string += "[" + self._component.printAST(0) + "]" 
+            string += "\n%sUnique component: " % self.getIndent(level+2)
+            string += "\n%s" % self._component.printAST(level+3)
         else:
-            string += "\n"
-            string += self.getIndent(level+1) +"Projection:" + " [" 
-            string += self._row.printAST(0)+","
-            string += self._col.printAST(0)+"]"
-            
-
-            # % (
-            #     self.getIndent(level+1),
-            #     self._row,
-            #     self._col
-            
-        #string += "\n%sVector:" % self.getIndent(level+1)
-        #string += "\n%s" % self._matrix.printAST(level+2)
+            string += "\n%sFirst component:" % self.getIndent(level+2)
+            string += "\n%s" % self._row.printAST(level+3)
+            string += "\n%sSecond component:" % self.getIndent(level+2)
+            string += "\n%s" % self._col.printAST(level+3)
         return string
 
 

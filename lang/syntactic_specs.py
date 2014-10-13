@@ -217,13 +217,13 @@ def p_LeftValue_vector_access(p):
     '''
     LeftValue : Tk_ID Tk_obrack Expression Tk_cbrack
     '''
-    p[0] = ProjectedVariable(p[1], p[3])
+    p[0] = ProjectedVariable(Variable(p[1]), p[3])
 
 def p_LeftValue_matrix_access(p):
     '''
     LeftValue : Tk_ID Tk_obrack Expression Tk_comma Expression Tk_cbrack
     '''
-    p[0] = ProjectedVariable(p[1], p[3], p[5])
+    p[0] = ProjectedVariable(Variable(p[1]), p[3], p[5])
 
 def p_Return(p):
     '''

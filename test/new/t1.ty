@@ -42,7 +42,9 @@ program
 	number n;
        	matrix(2,2) m={1,1:1,1};
        	row(3) rw;
-       	col(3) cl={1,1,1};  
+       	col(3) cl={1
+       	          :1
+       	          :1};  
     in
 	read n;
     	use
@@ -82,6 +84,11 @@ program
 	    print -x,x,"valoreS";
 	    
 	    set x= x div n ;
+	    set x= x / n ;
+
+	    {1,2:call1(),21 + 21}';
+	    m[2*3, call2(42) - -15];
+
 	    set cl[x]= rw .+. x .-. HolaMundo(10) ;
 	    set m[1,x]= rw[1] +  2 * 3;
 	    
