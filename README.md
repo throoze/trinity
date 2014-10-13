@@ -283,7 +283,7 @@ Expression : Tk_oparen Expression Tk_cparen
            | LeftValue
            | FunctionCall
            | Literal
-	   | ProjectedMatrix
+	         | ProjectedMatrix
 ```
 
 ```
@@ -375,18 +375,21 @@ Next is the precedence specification, using the same symbols that were used in
 the grammar, in the same way that it's feeded to `yacc`.
 
     precedence = (
+        
+        ('left', 'Tk_or'),
+        ('left', 'Tk_and'),
+        ('nonassoc', 'Tk_eq', 'Tk_neq', 'Tk_geq', 'Tk_leq', 'Tk_great', 'Tk_less'),
+        ('right', 'Tk_not'),
         ('left', 'Tk_plus', 'Tk_minus',
                  'Tk_mplus', 'Tk_mminus'
                  ),
         ('left', 'Tk_times', 'Tk_rdiv', 'Tk_rmod', 'Tk_div', 'Tk_mod',
                  'Tk_mtimes', 'Tk_mrdiv', 'Tk_mrmod', 'Tk_mdiv', 'Tk_mmod'
                  ),
-        ('left', 'Tk_trans'),
-        ('nonassoc', 'Tk_eq', 'Tk_neq', 'Tk_geq', 'Tk_leq', 'Tk_great', 'Tk_less'),
-        ('left', 'Tk_or'),
-        ('left', 'Tk_and'),
+       
         ('right', 'UMINUS'),
-        ('right', 'Tk_not')
+        ('left', 'Tk_trans')
+
     )
 
 Last tuples are the ones that have most precedence. The first component of the
@@ -396,6 +399,23 @@ next elements are the symbols at that level of precedence.
 Notice the `UMINUS` symbol. It can be interpreted as an alias to the unary
 minus operation, specified in the grammar with the `%prec` keyword.
 
+For better readability, next is the same table, ordered from higher to lower
+precedence:
+
+
+|  Associativity  |                              Operators                             |
+|:---------------:|:------------------------------------------------------------------:|
+|       Left      | `'`                                                                |
+|      Right      | `-` (unitary minus)                                                |
+|       Left      | `*`, `/`, `%`, `div`, `mod`, `.*.`, `./.`, `.%.`, `.div.`, `.mod.` |
+|       Left      | `+`, `-`, `.+.`, `.-.`                                             |
+|      Right      | `not`                                                              |
+| Non associative | `==`, `/=`, `>=`, `<=`, `>`, `<`                                   |
+|       Left      | `&`                                                                |
+|       Left      | \|                                                                 |
+
+
+
 [Go to top](https://github.com/throoze/trinity#trinity)
 
 Known issues
@@ -403,9 +423,5 @@ Known issues
 [Go to top](https://github.com/throoze/trinity#trinity)
 
 Next a list of known issues or bugs of the Trinity interpreter.
-
-1. Because of the ambiguity of the expressions portion of the grammar, there
-   are 22 shift/reduce conflicts (one for each operator) in the parser
-   generator.
 
 [Go to top](https://github.com/throoze/trinity#trinity)
