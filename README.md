@@ -1,7 +1,7 @@
 Trinity
 =======
 
-Version: 0.0.1
+Current Version: `0.0.2`
 
 Trinity is an imperative programming language with static scope and types
 focused in linear algebra over real numbers basics, with direct support for
@@ -13,7 +13,14 @@ written in Python, using a custom lexer, and [PLY](http://www.dabeaz.com/ply/)'s
 parser - `yacc` -. Details on the implementation will be documented here. So
 far, the lexer and the definition of tokens are finished. The lexer is currently
 compatible with PLY's yacc parser generator, and the grammar is specified in
-this document. Implementation of the grammar rules is currently on course.
+this document.
+
+The grammar is fully implemented, as well as the abstract syntax tree, which is
+printed to the standard output with indentations to indicate contention of the
+nodes.
+
+Static checks (type and context checks) are not yet implemented, neither the
+symbols table.
 
 Contents:
 ---------
