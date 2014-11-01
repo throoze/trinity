@@ -63,8 +63,14 @@ class Token:
     def setColumn(self, col):
         self._column = col
 
+    def getColumn(self):
+        return self._column
+
     def setLine(self, line):
         self._line = line
+
+    def getLine(self):
+        return self._line
 
     def setEndPos(self, end):
         self._end_pos = end

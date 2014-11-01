@@ -29,6 +29,7 @@ ERR_BAD_FILENAME = 2
 ERR_IO_ERROR = 3
 ERR_LEXICOGRAPHICAL_ERROR = 4
 ERR_SYNTAX_ERROR = 5
+ERR_SCOPE_ERROR = 6
 
 usage = ' Usage:\n\n\t$ ./trinity program.ty\n\n where "program.ty" is a file with the program to be analyzed.'
 
@@ -65,3 +66,6 @@ except LexicographicalError as le:
 except TrinitySyntaxError as se:
     print se
     exit(ERR_SYNTAX_ERROR)
+except TrinityScopeError as sce:
+    print sce
+    exit(ERR_SCOPE_ERROR)

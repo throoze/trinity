@@ -8,10 +8,11 @@
 # Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
 # ------------------------------------------------------------
-class TrinitySyntaxError(Exception):
+
+class TrinityException(Exception):
 
     def __init__(self, error, *args, **kwargs):
-        super(TrinitySyntaxError, self).__init__(args,kwargs)
+        super(TrinityException, self).__init__(args,kwargs)
         self._error = error
 
     def __repr__(self):
@@ -20,6 +21,14 @@ class TrinitySyntaxError(Exception):
     def __str__(self):
         return self.__unicode__()
 
+class TrinitySyntaxError(TrinityException):
+
     def __unicode__(self):
         string = "TrinitySyntaxError: %s" % self._error
+        return string
+
+class TrinityScopeError(TrinityException):
+
+    def __unicode__(self):
+        string = "TrinityScopeError: %s" % self._error
         return string
