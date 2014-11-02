@@ -165,8 +165,12 @@ class PrintStatement(Statement):
             for printable in self._printables[1:]:
                 string += "\n" + printable.printAST(level+2)
         return string
-
-
+    
+    def check(self,symtab):
+        if self._printables is not None : 
+            for printa in self._printables :
+                printa.check(symtab)
+        
 class Printable(object):
 
     def printAST(self, level):
@@ -205,6 +209,8 @@ class ReadStatement(Statement):
         string = "%sRead Statement in variable '%s'" % (self.getIndent(level), self._variable)
         return string
 
+    def check(self,symtab):
+        symtab.lookup(self._variable,token)
 
 class AssignmentStatement(Statement):
 
@@ -220,7 +226,12 @@ class AssignmentStatement(Statement):
         string += "\n%s" % self._rvalue.printAST(level+2)
         return string
     
-
+    def check(self,symtab):
+        ltype = self._lvalue.check(symtab)
+        rtype = self._rvalue.check(symtab)
+        if ltype ! = rtype :
+            print "Error : Assigment of %d to %d " % (ltype.__str__(),rtype.__str__())
+         
 class Variable(Expression):
     
     def __init__(self, identifier):
@@ -229,7 +240,9 @@ class Variable(Expression):
     def printAST(self, level):
         string = "%sVariable: %s" % (self.getIndent(level), self._id)
         return string
-
+    
+    def check(self,symtab):
+        return symtab.lookup(self._id)
 
 class ProjectedMatrix(Expression):
 
@@ -257,6 +270,14 @@ class ProjectedMatrix(Expression):
             string += "\n%s" % self._col.printAST(level+3)
         return string
         return string
+
+    def check(self,symtab):
+        self._matrix.check(symtab)
+        if type(self._row.check(symtab)) is not Number | type(self._col.check(symtab))is not Number:
+            print " Error projected matrix expression is not Number \n"
+        t=Number()
+        return t;
+
 
 class ProjectedVector(ProjectedMatrix):
 
@@ -293,6 +314,20 @@ class ProjectedVariable(Expression):
             string += "\n%sSecond component:" % self.getIndent(level+2)
             string += "\n%s" % self._col.printAST(level+3)
         return string
+    
+    def check(self,symtab):
+        symtab.lookup(self._matrix,token)
+        if self._component is None : 
+            if type(self._row.check(symtab)) is not Number | type(self._col.check(symtab))is not Number:
+                print " Error projected matrix expression is not Number \n"
+             
+        else : 
+            if type(self._component.check(symtab)) is not Number:
+                print " Error projected matrix expression is not Number \n"
+
+        t=Number()
+        return t;
+                
 
 
 class ReturnStatement(Statement):
@@ -316,6 +351,9 @@ class DiscardedExpression(Statement):
         string += "\n%s" % self._expression.printAST(level+1)
         return string
 
+    def check(self,symtab):
+        if self._expression is not None:
+            self._expression.check(symtab)
 
 class IfStatement(Statement):
 
@@ -341,7 +379,16 @@ class IfStatement(Statement):
         string += "\n%send of If Statement" % self.getIndent(level)
         return string
 
-
+    def check(self,symtab):
+        if type(self._condition)is not Boolean:
+            print "Error : If condition not boolean " 
+        else:
+            if self._statements is not None : 
+                for state in self._statements : 
+                    state.check(symtab)
+                    if self._alt_statements is not None:
+                        for altstate in self._alt_statements : 
+                            altstate.check(symtab)
 
 
 class ForStatement(Statement):
@@ -365,6 +412,16 @@ class ForStatement(Statement):
         string += "\n%send of For Statement" % self.getIndent(level)
         return string
 
+    def check(self,symtab):
+        
+        if type(self._iterable.check(symtab)) is not Matrix :
+            print " Error: For expression is not Matrix \n "
+        else:
+            symtab.push()
+            symtab.add(self._item,Number(),token):
+            for state in self._statements: 
+                state.check(symtab)
+
 
 class WhileStatement(Statement):
 
@@ -383,6 +440,14 @@ class WhileStatement(Statement):
         string += "\n%send of Iteration Statements" % self.getIndent(level+1)
         string += "\n%send of For Statement" % self.getIndent(level)
         return string
+    
+    def check(self,symtab):
+        if type(self._condition.check(symtab)) is not Boolean:
+            print " Error: While condition is not Boolean \n " 
+        if self._statements is not None:
+            for state in self._statements : 
+                state.check(symtab)
+        
 
 
 class BlockStatement(Statement):
@@ -406,6 +471,15 @@ class BlockStatement(Statement):
         string += "\n%send of Code Block Statement:" % self.getIndent(level)
         return string
 
+    def check(self,symtab):
+        for declared in self._declared_vars : 
+            declared.check(symtab)
+            #chequear que el id de declared este en el scope actual
+            #si no esta, agregarlo con su tipo
+
+        for state in self._statements : 
+            state.check(symtab)
+            
 
 class VariableDeclaration(Trinity):
 
@@ -419,6 +493,8 @@ class VariableDeclaration(Trinity):
         string += "\n%sIdentifier: %s" % (self.getIndent(level+1), self._id)
         return string
 
+    def check(self,symtab):
+        pass
 
 class VariableDeclarationAssign(VariableDeclaration):
 
@@ -433,7 +509,12 @@ class VariableDeclarationAssign(VariableDeclaration):
         string += "\n%sAssigned Value:" % self.getIndent(level+1)
         string += "\n%s" % self._rvalue.printAST(level+2)
         return string
-
+    
+    def check(self,symtab):
+        rtype=self._rvalue.check(symtab)
+        if rtype != self._type:
+            "Error : Trying to assing %s to %s \n " % (rtype.__str__(),self._type.__str__())
+        #Devolver que aqui? 
 
 class BinaryExpression(Expression):
 
@@ -509,7 +590,7 @@ class MatrixLiteral(Literal, Expression):
             for row in self._matrix:
                 for elm in row : 
                     if type(elm.check) is not Number : 
-                        print " Error en matriz literal, expresion no es numerica"
+                        print " Error : non-numeric value in matrix literal \n" 
         t = Matrix()
         return t 
 
@@ -527,6 +608,10 @@ class FunctionCall(Expression):
             for arg in self._arguments:
                 string += "\n%s" % arg.printAST(level+2)
         return string
+
+    def check(self,symtab):
+        symtab.lookup(self._id,token)
+        #chequear que el nro de args y el tipo concuerden
 
 class Sum(BinaryExpression):
 
@@ -798,7 +883,7 @@ class GreaterOrEqual(BinaryExpression):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if type(ltype) is not Number : 
-            print " Error: comparing not numeric expression >=  " 
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
         if (type(ltype) == type(rtype)):
             t = Boolean()
             return t
@@ -815,7 +900,7 @@ class LessOrEqual(BinaryExpression):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if type(ltype) is not Number : 
-            print " Error: comparing not numeric expression <=  " 
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
         if (type(ltype) == type(rtype)):
             t = Boolean()
             return t
@@ -832,7 +917,7 @@ class Greater(BinaryExpression):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if type(ltype) is not Number : 
-            print " Error: comparing not numeric expression for > " 
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
         if (type(ltype) == type(rtype)):
             t = Boolean()
             return t
@@ -850,7 +935,7 @@ class Less(BinaryExpression):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if type(ltype) is not Number : 
-            print " Error: comparing not numeric expression for < \n" 
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
         if (type(ltype) == type(rtype)):
             t = Boolean()
             return t
@@ -868,9 +953,9 @@ class And(BinaryExpression):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is not  Boolean) : 
-            print " Error : left operand is not of type boolean \n" 
+            print " Error : left operand is not boolean \n" 
         if (type(rtype) is not  Boolean) : 
-            print " Error : right operand is not of type boolean \n" 
+            print " Error : right operand is not boolean \n" 
         else : 
             t=Boolean()
             return t
@@ -886,9 +971,9 @@ class Or(BinaryExpression):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is not  Boolean) : 
-            print " Error : left operand is not of type boolean \n" 
+            print " Error : left operand is not boolean \n" 
         if (type(rtype) is not  Boolean) : 
-            print " Error : right operand is not of type boolean \n" 
+            print " Error : right operand is not boolean \n" 
         else : 
             t=Boolean()
             return t
@@ -926,10 +1011,24 @@ class Transpose(UnaryExpression):
     def __init__(self, operand):
         super(Transpose, self).__init__(None, operand)
         self._operation = "Matrix Transpose"
-   
+
+    def check(self,symtab):
+        otype = self._operand.check(symtab)
+        if type(otype) is not Matrix:
+           print " Can't apply traspose to non-matrix expression " 
+        else:
+           return otype
+
         
 class Not(UnaryExpression):
     
     def __init__(self, operand):
         super(Not, self).__init__(lambda x: not x, operand)
         self._operation = "Not"
+    
+    def check(self,symtab):
+        otype = self._operand.check(symtab)
+        if type(otype) is not Boolean:
+           print " Can't apply not to non-boolean expression " 
+        else:
+           return otype
