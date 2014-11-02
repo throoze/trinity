@@ -44,6 +44,8 @@ class Lexer():
         self._col_count          = 1
         self._lexed              = False
         self._tokens_generator   = None
+        self.lineno              = 0
+        self.lexpos              = 0
 
     def input(self, inputString=None):
         if inputString is not None and inputString != '':
@@ -61,6 +63,8 @@ class Lexer():
     def tokenGenerator(self):
         for token in self._found_tokens:
             token.makePLYable()
+            self.lineno = token.lineno
+            self.lexpos = token.lexpos
             yield token
 
     def lex(self, silent=None):
