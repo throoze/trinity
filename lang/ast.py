@@ -9,7 +9,7 @@
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
 # ------------------------------------------------------------
 
-
+from sym_table import * 
 
 class Trinity(object):
 
@@ -35,6 +35,17 @@ class Trinity(object):
                 string += "\n" + state.printAST(1)
         string += "\nend of Program"
         return string
+    
+    def check(self):
+        symtab=SymTable()
+        for fun in self._functions :
+            symtab.addName(fun._name,fun._type,token) # Duda en cual es el token
+        if self._functions is not None:
+            for fun in self._functions :
+                fun.check(symtab)
+        if self._statements is not None:
+            for state in self._statements : 
+                state.check(symtab)
 
 class FunctionDefinition(Trinity):
 
@@ -60,7 +71,18 @@ class FunctionDefinition(Trinity):
         string += "\n" + self.getIndent(level+1) + "end of Function Body"
         string += "\n" + self.getIndent(level) + "end of Function Declaration\n"
         return string
- 
+
+    def check(self,symtab):
+        
+        symtab.push()
+        for param in self._params:
+            symtab.addName(param._name,param._type,token)
+            
+        for state in self._statements:
+            rtype = state.check(symtab)
+            if type(rtype) is not type(self._type):
+                print "Return type error in function : " + self._name 
+             
 class FormalParameter(Trinity):
 
     def __init__(self, data_type, name):
@@ -429,7 +451,8 @@ class BinaryExpression(Expression):
         string += "\n%sRight Operand:" % self.getIndent(level+1)
         string += "\n%s" % self._right.printAST(level+2)
         return string
-
+    
+            
 
 class TrueLiteral(Literal, Expression):
 
@@ -437,12 +460,19 @@ class TrueLiteral(Literal, Expression):
         string = "%sTrue Boolean Literal" % self.getIndent(level)
         return string
 
-
+    def check(self):
+        t = Boolean()
+        return t 
+    
 class FalseLiteral(Literal, Expression):
 
     def printAST(self, level):
         string = "%sFalse Boolean Literal" % self.getIndent(level)
         return string
+
+    def check(self):
+        t = Boolean()
+        return t
         
 
 class NumberLiteral(Literal, Expression):
@@ -454,6 +484,9 @@ class NumberLiteral(Literal, Expression):
         string = "%sNumber Literal: %s" % (self.getIndent(level), self._value)
         return string
 
+    def check(self):
+        t = Number()
+        return t
 
 class MatrixLiteral(Literal, Expression):
 
@@ -471,6 +504,14 @@ class MatrixLiteral(Literal, Expression):
             string += "\n%send of Matrix Literal" % self.getIndent(level)
         return string
 
+    def check(self):
+        if self._matrix is not None and self._matrix != []:
+            for row in self._matrix:
+                for elm in row : 
+                    if type(elm.check) is not Number : 
+                        print " Error en matriz literal, expresion no es numerica"
+        t = Matrix()
+        return t 
 
 class FunctionCall(Expression):
 
@@ -493,19 +534,45 @@ class Sum(BinaryExpression):
         super(Sum, self).__init__(left, lambda x,y: x + y, right)
         self._operation = "Sum"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Number) :
+            
+            return rtype
+        else:
+            print " Error: trying to (+)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())  
+        
+
 class Subtraction(BinaryExpression):
 
     def __init__(self, left, right):
         super(Subtraction, self).__init__(left, lambda x,y: x - y, right)
         self._operation = "Subtraction"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & ( type(rtype) is Number) :
+            
+            return rtype
+        else:
+            print " Error: trying to (-)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
 
 class Times(BinaryExpression):
 
     def __init__(self, left, right):
         super(Times, self).__init__(left, lambda x,y: x * y, right)
         self._operation = "Multiplication"
-
+    
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & ( type(rtype) is Number) :
+            
+            return rtype
+        else:
+            print " Error: trying to (*)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
 
 class Division(BinaryExpression):
 
@@ -513,17 +580,45 @@ class Division(BinaryExpression):
         super(Division,self).__init__(left, lambda x,y: x//y, right)
         self._operation = "Division" 
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Number) :
+            
+            return rtype
+        else:
+            print " Error: trying to div  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
+
 class Modulus(BinaryExpression):
     
     def __init__(self, left, right):
         super(Modulus, self).__init__(left, lambda x,y: x % y, right)
         self._operation = "Modulus"
+    
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Number) :
+            
+            return rtype
+        else:
+            print " Error: trying to mod  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
+
 
 class RealDivision(BinaryExpression):
 
     def __init__(self, left, right):
         super(RealDivision, self).__init__(left, lambda x,y: x / y, right)
         self._operation = "Real Division"
+
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & ( type(rtype) is Number) :
+            
+            return rtype
+        else:
+            print " Error: trying to /  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
 
 
 class RealModulus(BinaryExpression):
@@ -532,6 +627,14 @@ class RealModulus(BinaryExpression):
         super(RealModulus, self).__init__(left, lambda x,y: x % y, right)
         self._operation = "Real Modulus"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Number) :
+            return rtype
+        else:
+             print " Error: trying to (%)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
+
 
 class MatrixSum(BinaryExpression):
 
@@ -539,12 +642,32 @@ class MatrixSum(BinaryExpression):
         super(MatrixSum, self).__init__(left, None, right)
         self._operation = "Matrix Sum"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Matrix):
+            return rtype
+        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+            return ltype
+        else:
+            print " Error: trying to (.+.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
+    
 
 class MatrixSubtraction(BinaryExpression):
 
     def __init__(self, left, right):
         super(MatrixSubtraction, self).__init__(left, None, right)
         self._operation = "Matrix Subtraction"
+
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Matrix):
+            return rtype
+        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+            return ltype
+        else:
+            print " Error: trying to (.-.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
 
 
 class MatrixTimes(BinaryExpression):
@@ -553,12 +676,32 @@ class MatrixTimes(BinaryExpression):
         super(MatrixTimes, self).__init__(left, None, right)
         self._operation = "Matrix Multiplication"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Matrix):
+            return rtype
+        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+            return ltype
+        else:
+            print " Error, trying to (.*.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
+
 
 class MatrixDivision(BinaryExpression):
 
     def __init__(self, left, right):
         super(MatrixDivision, self).__init__(left, None, right)
         self._operation = "Matrix Division"
+
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Matrix):
+            return rtype
+        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+            return ltype
+        else:
+            print " Error: trying to (.div)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
 
 
 class MatrixModulus(BinaryExpression):
@@ -567,12 +710,33 @@ class MatrixModulus(BinaryExpression):
         super(MatrixModulus, self).__init__(left, None, right)
         self._operation = "Matrix Modulus"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Matrix):
+            return rtype
+        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+            return ltype
+        else:
+            print " Error: trying to (.mod.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
+
+
 
 class MatrixRealDivision(BinaryExpression):
 
     def __init__(self, left, right):
         super(MatrixRealDivision, self).__init__(left, None, right)
         self._operation = "Matrix Real Division"
+
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Matrix):
+            return rtype
+        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+            return ltype
+        else:
+            print " Error: trying to (./.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
 
 
 class MatrixRealModulus(BinaryExpression):
@@ -581,6 +745,16 @@ class MatrixRealModulus(BinaryExpression):
         super(MatrixRealModulus, self).__init__(left, None, right)
         self._operation = "Matrix Real Modulus"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is Number) & (type(rtype) is Matrix):
+            return rtype
+        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+            return ltype
+        else:
+            print " Error: trying to (.%.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
+
 
 class Equivalence(BinaryExpression):
 
@@ -588,12 +762,30 @@ class Equivalence(BinaryExpression):
         super(Equivalence, self).__init__(left, lambda x,y: x == y, right)
         self._operation = "Equivalence"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) == type(rtype)):
+            t = Boolean()
+            return t
+        else:
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
+
 
 class NotEquivalence(BinaryExpression):
 
     def __init__(self, left, right):
         super(NotEquivalence, self).__init__(left, lambda x,y: x != y, right)
         self._operation = "Not Equivalence"
+   
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) == type(rtype)):
+            t = Boolean()
+            return t
+        else:
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
 
 
 class GreaterOrEqual(BinaryExpression):
@@ -602,6 +794,16 @@ class GreaterOrEqual(BinaryExpression):
         super(GreaterOrEqual, self).__init__(left, lambda x,y: x >= y, right)
         self._operation = "Greater Or Equal"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if type(ltype) is not Number : 
+            print " Error: comparing not numeric expression >=  " 
+        if (type(ltype) == type(rtype)):
+            t = Boolean()
+            return t
+        else:
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
 
 class LessOrEqual(BinaryExpression):
 
@@ -609,12 +811,33 @@ class LessOrEqual(BinaryExpression):
         super(LessOrEqual, self).__init__(left, lambda x,y: x <= y, right)
         self._operation = "Less Or Equal"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if type(ltype) is not Number : 
+            print " Error: comparing not numeric expression <=  " 
+        if (type(ltype) == type(rtype)):
+            t = Boolean()
+            return t
+        else:
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
 
 class Greater(BinaryExpression):
 
     def __init__(self, left, right):
         super(Greater, self).__init__(left, lambda x,y: x > y, right)
         self._operation = "Greater"
+
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if type(ltype) is not Number : 
+            print " Error: comparing not numeric expression for > " 
+        if (type(ltype) == type(rtype)):
+            t = Boolean()
+            return t
+        else:
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
 
 
 class Less(BinaryExpression):
@@ -623,20 +846,52 @@ class Less(BinaryExpression):
         super(Less, self).__init__(left, lambda x,y: x < y, right)
         self._operation = "Less"
 
+    def check(self, symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if type(ltype) is not Number : 
+            print " Error: comparing not numeric expression for < \n" 
+        if (type(ltype) == type(rtype)):
+            t = Boolean()
+            return t
+        else:
+            print " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
+
 
 class And(BinaryExpression):
 
     def __init__(self, left, right):
         super(And, self).__init__(left, lambda x,y: x and y, right)
         self._operation = "And"
-
+           
+    def check(self,symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is not  Boolean) : 
+            print " Error : left operand is not of type boolean \n" 
+        if (type(rtype) is not  Boolean) : 
+            print " Error : right operand is not of type boolean \n" 
+        else : 
+            t=Boolean()
+            return t
+    
 
 class Or(BinaryExpression):
 
     def __init__(self, left, right):
         super(Or, self).__init__(left, lambda x,y: x or y, right)
         self._operation = "Or"
-
+          
+    def check(self,symtab):
+        ltype = self._left.check(symtab)
+        rtype = self._right.check(symtab)
+        if (type(ltype) is not  Boolean) : 
+            print " Error : left operand is not of type boolean \n" 
+        if (type(rtype) is not  Boolean) : 
+            print " Error : right operand is not of type boolean \n" 
+        else : 
+            t=Boolean()
+            return t
 
 class UnaryExpression(Expression):
 
@@ -659,6 +914,12 @@ class UnaryMinus(UnaryExpression):
         super(UnaryMinus, self).__init__(lambda x: - x, operand)
         self._operation = "Unary Minus"
         
+    def check(self,symtab):
+        otype = self._operand.check(symtab)
+        if type(otype) is Boolean:
+           print " Can't apply Unary Minus to boolean expression " 
+        else:
+           return otype
 
 class Transpose(UnaryExpression):
     

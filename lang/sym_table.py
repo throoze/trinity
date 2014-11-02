@@ -9,7 +9,7 @@
 # Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
 # ------------------------------------------------------------
-from exception import TrinityScopeError
+from exceptions import TrinityScopeError
 
 
 class Type(object):
@@ -21,15 +21,21 @@ class Type(object):
 
 class Boolean(Type):
     """Represents the Boolean type"""
+    def __str__(self):
+        return "Boolean"
     pass
         
 
 class Number(Type):
     """Represents the Number type"""
+    def __str__(self):
+        return "Number"
     pass
 
 class Matrix(Type):
     """Represents the Matrix type"""
+    def __str__(self):
+        return "Matrix"
     pass
 
 class SymTable(object):
@@ -48,7 +54,7 @@ class SymTable(object):
         """
         if name in self._head:
             message = ""
-            message  += "Line: %d, Column: %d. " % (token.getLine(), token.getColumn()))
+            message  += "Line: %d, Column: %d. " % (token.getLine(), token.getColumn())
             message += "Variable or function '%s' is already defined." % name
             raise TrinityScopeError(message)
         self._head[name] = type_class
@@ -66,7 +72,7 @@ class SymTable(object):
                 if name in context:
                     return context[name]
         message = ""
-        message += "Line: %d, Column: %d. " % (token.getLine(), token.getColumn()))
+        message += "Line: %d, Column: %d. " % (token.getLine(), token.getColumn())
         message += "Variable of function '%s' not defined in this scope" % name
         raise TrinityScopeError(message)
 
