@@ -35,23 +35,23 @@ class Matrix(Type):
     """Represents the Matrix type"""
 
     def __init__(self, rows, cols):
-        self._rows = rows
-        self._cols = cols
+        self.rows = rows
+        self.cols = cols
 
     def __str__(self):
-        return "Matrix(%d,%d)" % (self._rows, self._cols)
+        return "Matrix(%d,%d)" % (self.rows, self.cols)
 
 
 class Function(Type):
     """Represents the Function type"""
 
     def __init__(self, n_args, args_types, return_type):
-        self._n_args = n_args
-        self._args_types = args_types
-        self._return_type = return_type
+        self.n_args = n_args
+        self.args_types = args_types
+        self.return_type = return_type
 
     def __str__(self):
-        return "Function(%d)" % self._n_args
+        return "Function(%d)" % self.n_args
 
 
 class SymTable(object):
