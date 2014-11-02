@@ -23,20 +23,36 @@ class Boolean(Type):
     """Represents the Boolean type"""
     def __str__(self):
         return "Boolean"
-    pass
         
 
 class Number(Type):
     """Represents the Number type"""
     def __str__(self):
         return "Number"
-    pass
+
 
 class Matrix(Type):
     """Represents the Matrix type"""
+
+    def __init__(self, rows, cols):
+        self._rows = rows
+        self._cols = cols
+
     def __str__(self):
-        return "Matrix"
-    pass
+        return "Matrix(%d,%d)" % (self._rows, self._cols)
+
+
+class Function(Type):
+    """Represents the Function type"""
+
+    def __init__(self, n_args, args_types, return_type):
+        self._n_args = n_args
+        self._args_types = args_types
+        self._return_type = return_type
+
+    def __str__(self):
+        return "Function(%d)" % self._n_args
+
 
 class SymTable(object):
     """
@@ -44,52 +60,39 @@ class SymTable(object):
     ensures the proper checking of names scope.
     """
 
-    def __init__(self):
-        self._head = {}
-        self._tail = []
+    def __init__(self, scope, father=None):
+        self._scope = scope
+        self._children = []
+        if father is not None: father._birth(self)
+        self._father = father
 
-    def addName(self, name, type_class, token):
+    def addName(self, name, type_class):
         """
         Adds a new name to the most inmediate scope
         """
-        if name in self._head:
+        if name in self._scope:
             message = ""
-            message  += "Line: %d, Column: %d. " % (token.getLine(), token.getColumn())
             message += "Variable or function '%s' is already defined." % name
             raise TrinityScopeError(message)
-        self._head[name] = type_class
+        self._scope[name] = type_class
 
-    def lookup(self, name, token):
+    def _birth(self, child):
+        """
+        Creates the reference from the father to its children
+        """
+        self._children.append(child)
+
+    def lookup(self, name):
         """
         Looks for a given name in the most inmediate scope. If it is not found,
         looks in the next one until it finds it or, raise an exception if it
         doesn't find it in any scope.
         """
-        if name in self._head:
-            return self._head[name]
+        if name in self._scope: return self._scope[name]
+        elif self._father is not None: return self._father.lookup(name)
         else:
-            for context in self._tail:
-                if name in context:
-                    return context[name]
-        message = ""
-        message += "Line: %d, Column: %d. " % (token.getLine(), token.getColumn())
-        message += "Variable of function '%s' not defined in this scope" % name
-        raise TrinityScopeError(message)
-
-    def pop(self):
-        """
-        Removes the most inmediate scope
-        """
-        ret = self._head
-        self._head = self._tail[0]
-        self._tail = self._tail[1:]
-
-    def push(self):
-        """
-        Creates a new empty scope in the SymTable.
-        """
-        self._tail.insert(0, self._head)
-        self._head = {}
+            error += "Variable of function '%s' not defined in this scope" % name
+            raise TrinityScopeError(error)
 
     def printScope(self, name):
         """
