@@ -32,3 +32,13 @@ class TrinityScopeError(TrinityException):
     def __unicode__(self):
         string = "TrinityScopeError: %s" % self._error
         return string
+
+class TrinityTypeError(TrinityException):
+    
+    def __unicode__(self):
+        string = "TrinityTypeError : %s" % self._error
+
+class TrinityMatrixDimensionError(TrinityException):
+    
+    def __unicode__(self):
+        string = "TrinityMatrixDimension Error : %s" % self._error
