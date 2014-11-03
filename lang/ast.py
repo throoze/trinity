@@ -20,6 +20,9 @@ class Trinity(object):
         self._functions  = functions
         self._statements = statements
 
+    def getPosition(self):
+        return self._position
+
     def getIndent(self,num):
         return self.SPACE * num 
         
@@ -342,7 +345,7 @@ class ProjectedMatrix(Expression):
         return string
 
     def check(self,symtab):
-        self._matrix.check(symtab)
+        matrix_type = self._matrix.check(symtab)
         if component is None:
             if type(self._row.check(symtab)) is not Number:
                 error = "In line %d, column %d, " % self._position
@@ -352,8 +355,16 @@ class ProjectedMatrix(Expression):
                 error = "In line %d, column %d, " % self._position
                 error += "expression for columns in matrix projection is not a Number."
                 raise TrinityTypeError(error)
-        t=Number(self._position)
-        return t;
+        else:
+            if type(self._component.check(symtab)) is not Number:
+                error = "In line %d, column %d, " % self._position
+                error += "expression in vector projection is not a Number."
+                raise TrinityTypeError(error)
+            if matrix_type.rows != 1 or matrix_type.cols != 1:
+                error = "In line %d, column %d, " % self._position
+                error += "matrix has not vectorial dimentions (either rows or columns equals to 1)."
+                raise TrinityMatrixDimensionError(error)
+        return Number(self._position);
 
 
 class ProjectedVector(ProjectedMatrix):
@@ -688,15 +699,25 @@ class MatrixLiteral(Literal, Expression):
             string += "\n%send of Matrix Literal" % self.getIndent(level)
         return string
 
-    def check(self):
+    def check(self, symtab):
         if self._matrix is not None and self._matrix != []:
+            rows = 0
+            cols = None
             for row in self._matrix:
+                rows += 1
                 for elm in row : 
-                    if type(elm.check) is not Number : 
-                        message = " Error : non-numeric value in matrix literal \n" 
+                    if type(elm.check(symtab)) is not Number : 
+                        error = "In line %d, column %d, " % elm.getPosition()
+                        error += "non-numeric value in matrix literal."
                         raise TrinityTypeError(message)
-        t = Matrix()
-        return t 
+                if cols is None:
+                    cols = len(row)
+                else:
+                    if len(row) != cols:
+                        error = "In line %d, column %d, " % self._position
+                        error += "column number doesn't match."
+                        raise TrinityMatrixDimensionError(error)
+        return Matrix(rows, cols, self._position)
 
 class FunctionCall(Expression):
 
