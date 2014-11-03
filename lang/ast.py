@@ -465,7 +465,9 @@ class DiscardedExpression(Statement):
 
     def check(self,symtab):
         if self._expression is not None:
-            self._expression.check(symtab)
+            exp_type = self._expression.check(symtab)
+        return True
+
 
 class IfStatement(Statement):
 
@@ -493,8 +495,9 @@ class IfStatement(Statement):
         return string
 
     def check(self,symtab):
-        if type(self._condition)is not Boolean:
-            message = "Error : If condition not boolean "
+        if type(self._condition.check(symtab))is not Boolean:
+            error = "In line %d, column %d, " % self._position
+            error += "'If' statement condition is not boolean."
             raise TrinityTypeError(message)
         else:
             if self._statements is not None : 
@@ -503,6 +506,7 @@ class IfStatement(Statement):
                     if self._alt_statements is not None:
                         for altstate in self._alt_statements : 
                             altstate.check(symtab)
+        return True
 
 
 class ForStatement(Statement):
@@ -530,13 +534,15 @@ class ForStatement(Statement):
     def check(self,symtab):
         
         if type(self._iterable.check(symtab)) is not Matrix :
-            message = " Error: For iterable expression is not Matrix \n "
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error += "'for' statement iterable expression is not Matrix."
+            raise TrinityTypeError(error)
         else:
-            symtab.push()
-            symtab.addName(self._item,Number(),token)
+            sym_table = SymTable(father=symtab)
+            sym_table.addName(self._item, Number(self._position), self._position)
             for state in self._statements: 
-                state.check(symtab)
+                state.check(sym_table)
+        return True
 
 
 class WhileStatement(Statement):
@@ -560,11 +566,13 @@ class WhileStatement(Statement):
     
     def check(self,symtab):
         if type(self._condition.check(symtab)) is not Boolean:
-            message = " Error: While condition is not Boolean \n " 
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error += "'while' statement condition is not boolean."
+            raise TrinityTypeError(error)
         if self._statements is not None:
             for state in self._statements : 
                 state.check(symtab)
+        return True
         
 
 
@@ -591,20 +599,22 @@ class BlockStatement(Statement):
         return string
 
     def check(self,symtab):
-        if self._declared_vars is not None: 
-            for declared in self._declared_vars : 
-                declared.check(symtab)
-                symtab.addName(declared._id,declared._type,token)
+        sym_table = SymTable(father=symtab)
+        if self._declared_vars is not None and self._declared_vars != []: 
+            for declared in self._declared_vars:
+                declared.check(sym_table)
+                sym_table.addName(declared._id, declared._type, self._position)
         if self._statements is not None :
-            for state in self._statements : 
-                state.check(symtab)
+            for state in self._statements:
+                state.check(sym_table)
+        return True
             
 
 class VariableDeclaration(Trinity):
 
     def __init__(self, position, data_type, identifier):
         self._position = position
-        self._type = data_type
+        self._type = data_type.toType()
         self._id = identifier
 
     def printAST(self, level):
@@ -614,7 +624,7 @@ class VariableDeclaration(Trinity):
         return string
 
     def check(self,symtab):
-        pass
+        return self._type
 
 class VariableDeclarationAssign(VariableDeclaration):
 
