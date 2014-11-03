@@ -16,17 +16,41 @@ class Type(object):
     """
     Represents one of the Trinity language basic data types
     """
-    pass
+    def __init__(self, position=None):
+        self._position = position
+
+    def getPosition(self):
+        return self._position
+
+
+class String(Type):
+    """
+    Represents the String literal type
+    """
+
+    def __init__(self, position=None):
+        super(String, self).__init__(position)
+
+    def __str__(self):
+        return "String"
         
 
 class Boolean(Type):
     """Represents the Boolean type"""
+
+    def __init__(self, position=None):
+        super(Boolean, self).__init__(position)
+
     def __str__(self):
         return "Boolean"
         
 
 class Number(Type):
     """Represents the Number type"""
+
+    def __init__(self, position=None):
+        super(Number, self).__init__(position)
+
     def __str__(self):
         return "Number"
 
@@ -34,7 +58,8 @@ class Number(Type):
 class Matrix(Type):
     """Represents the Matrix type"""
 
-    def __init__(self, rows, cols):
+    def __init__(self, rows, cols, position=None):
+        super(Matrix, self).__init__(position)
         self.rows = rows
         self.cols = cols
 
@@ -45,7 +70,8 @@ class Matrix(Type):
 class Function(Type):
     """Represents the Function type"""
 
-    def __init__(self, args_types, return_type):
+    def __init__(self, args_types, return_type, position=None):
+        super(Function, self).__init__(position)
         self.n_args = len(args_types)
         self.args_types = args_types
         self.return_type = return_type
@@ -60,7 +86,7 @@ class SymTable(object):
     ensures the proper checking of names scope.
     """
 
-    def __init__(self, father=None, scope={}, in_function=None):
+    def __init__(self, father=None, scope={}, in_function=None, function_type=None):
         """
         Params:
             scope  :
@@ -75,9 +101,25 @@ class SymTable(object):
         if father is not None: father._birth(self)
         self._father = father
         if in_function is None:
-            self._in_function = father.isInFunction()
+            if father is not None:
+                self._in_function = father.isInFunction()
+            else:
+                self._in_function = in_function
         else:
             self._in_function = in_function
+        if self._in_function is True:
+            if function_type is None:
+                if father is not None:
+                    self._function_type = father.getFunctionType()
+                else:
+                    self._function_type = function_type
+            else:
+                self._function_type = function_type
+        else:
+            self._function_type = None
+
+    def getFunctionType(self):
+        return self._function_type
 
     def isInFunction(self):
         return self._in_function

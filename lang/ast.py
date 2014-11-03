@@ -40,7 +40,7 @@ class Trinity(object):
     def check(self):
         symtab=SymTable()
         for fun in self._functions:
-            symtab.addName(fun._name, fun.functionType(), self._position)
+            symtab.addName(fun.getName(), fun.functionType(), self._position)
         if self._functions is not None:
             for fun in self._functions:
                 fun.check(symtab)
@@ -57,6 +57,12 @@ class FunctionDefinition(Trinity):
         self._params     = params
         self._type       = return_type.toType()
         self._statements = statements
+
+    def getName(self):
+        return self._name
+
+    def getParams(self):
+        return self._params
     
     def printAST(self,level):
         
@@ -82,16 +88,23 @@ class FunctionDefinition(Trinity):
         return Function(types, self._type)
 
 
-    def check(self,symtab):
-        sym_table = SymTable(in_function=True)
+    def check(self, symtab):
+        sym_table = SymTable(symtab, in_function=True, function_type=self._type)
         for param in self._params:
-            symtab.addName(param._name,param._type,token)
+            symtab.addName(param._name, param._type, param._position)
             
+        ok = True
         for state in self._statements:
-            rtype = state.check(symtab)
-            if type(rtype) is not type(self._type):
-                message =  "Return type error in function %d " + self._name 
-                raise TrinityTypeError(message)
+            rtype = state.check(sym_table)
+            if rtype is not True and rtype is not False:
+                if type(rtype) is not type(self._type):
+                    position = rtype.getPosition()
+                    error = "In function '%s', line %d, column %d, " % (self._name, position[0], position[1])
+                    error += "return type does not match function type."
+                    raise TrinityTypeError(error)
+            else:
+                ok = ok and rtype
+        return ok
              
 class FormalParameter(Trinity):
 
@@ -115,7 +128,7 @@ class Type(Trinity):
     def __init__(self):
         pass
 
-    def toType(self,symtab):
+    def toType(self):
         pass
 
 class BooleanType(Type):
@@ -127,8 +140,8 @@ class BooleanType(Type):
         string = "Boolean"
         return string
     
-    def toType(self,symtab):
-        return Boolean()
+    def toType(self):
+        return Boolean(self._position)
 
 
 class NumberType(Type):
@@ -140,8 +153,8 @@ class NumberType(Type):
         string = "Number"
         return string
 
-    def toType(self,symtab):
-        return Matrix()
+    def toType(self):
+        return Number(self._position)
 
 class MatrixType(Type):
 
@@ -154,8 +167,8 @@ class MatrixType(Type):
         string = "Matrix(%d,%d)" % (self._rows,self._cols)
         return string
     
-    def toType():
-        return Matrix()
+    def toType(self):
+        return Matrix(self._rows, self._cols, self._position)
     
     
 
@@ -168,8 +181,8 @@ class ColumnVectorType(MatrixType):
         string = "Column(%d)" % (self._rows)
         return string
     
-    def toType(self,symtab):
-        return Matrix()
+    def toType(self):
+        return Matrix(self._rows, 1, self._position)
 
 
 class RowVectorType(MatrixType):
@@ -182,7 +195,7 @@ class RowVectorType(MatrixType):
         return string
 
     def toType(self,symtab):
-        return Matrix()
+        return Matrix(1, self._cols, self._position)
 
 class Statement(Trinity):
     def __init__(self):
@@ -205,9 +218,12 @@ class PrintStatement(Statement):
         return string
     
     def check(self,symtab):
-        if self._printables is not None : 
+        if self._printables is not None :
             for printa in self._printables :
                 printa.check(symtab)
+        return True
+
+
         
 class Printable(object):
 
@@ -238,6 +254,9 @@ class StringLiteral(Literal):
     def printAST(self, level):
         return "%sString Literal: %s" % (self.getIndent(level), repr(self._value))
 
+    def check(self, symtab):
+        return String(self._position)
+
 
 class ReadStatement(Statement):
 
@@ -250,7 +269,7 @@ class ReadStatement(Statement):
         return string
 
     def check(self,symtab):
-        symtab.lookup(self._variable,token)
+        return type(self._variable.check(symtab)) is Number
 
 class AssignmentStatement(Statement):
 
@@ -270,13 +289,16 @@ class AssignmentStatement(Statement):
     def check(self,symtab):
         ltype = self._lvalue.check(symtab)
         rtype = self._rvalue.check(symtab)
-        if ltype != rtype :
-            print "Error : Assigment of %d to %d " % (ltype.__str__(),rtype.__str__())
+        if type(ltype) is not type(rtype):
+            error = "In line %d, column %d, " % self._position
+            error += "assigment of %s to %s" % (ltype.__str__(),rtype.__str__())
+            raise TrinityTypeError(error)
         else:
             if (type(ltype) is Matrix) & (type(rtype) is Matrix) :
                 if ltype._rows != rtype.rows | ltype._cols != rtype.cols :
-                    message = "Error : Matrix assignment sizes don't match "
-                    raise TrinityMatrixDimensionError(message)
+                    error = "In line %d, column %d, matrix sizes don't match. " % self._position
+                    error += "Trying to assing (%d,%d) to (%d,%d)." % (rtype._rows, rtype._cols, ltype._rows, ltype._cols)
+                    raise TrinityMatrixDimensionError(error)
     
 class Variable(Expression):
     
@@ -289,7 +311,7 @@ class Variable(Expression):
         return string
     
     def check(self,symtab):
-        return symtab.lookup(self._id)
+        return symtab.lookup(self._id, self._position)
 
 class ProjectedMatrix(Expression):
 
@@ -321,9 +343,16 @@ class ProjectedMatrix(Expression):
 
     def check(self,symtab):
         self._matrix.check(symtab)
-        if type(self._row.check(symtab)) is not Number | type(self._col.check(symtab))is not Number:
-            print " Error projected matrix expression is not Number \n"
-        t=Number()
+        if component is None:
+            if type(self._row.check(symtab)) is not Number:
+                error = "In line %d, column %d, " % self._position
+                error += "expression for rows in matrix projection is not a Number."
+                raise TrinityTypeError(error)
+            if type(self._col.check(symtab))is not Number:
+                error = "In line %d, column %d, " % self._position
+                error += "expression for columns in matrix projection is not a Number."
+                raise TrinityTypeError(error)
+        t=Number(self._position)
         return t;
 
 

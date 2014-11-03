@@ -202,7 +202,7 @@ def p_Read(p):
     '''
     Read : Tk_read Tk_ID Tk_scolon
     '''
-    p[0] = ReadStatement((p.lineno(0), p.lexpos(0)), p[2])
+    p[0] = ReadStatement((p.lineno(0), p.lexpos(0)), Variable((p.lineno(2), p.lexpos(2)), p[2]))
 
 def p_Assignment(p):
     '''
