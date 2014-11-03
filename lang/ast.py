@@ -83,7 +83,8 @@ class FunctionDefinition(Trinity):
         for state in self._statements:
             rtype = state.check(symtab)
             if type(rtype) is not type(self._type):
-                print "Return type error in function : " + self._name 
+                message =  "Return type error in function %d " + self._name 
+                raise TrinityTypeError(message)
              
 class FormalParameter(Trinity):
 
@@ -104,6 +105,8 @@ class Type(Trinity):
     def __init__(self):
         pass
 
+    def toType(self,symtab):
+        pass
 
 class BooleanType(Type):
 
@@ -113,6 +116,9 @@ class BooleanType(Type):
     def printAST(self, level):
         string = "Boolean"
         return string
+    
+    def toType(self,symtab):
+        return Boolean()
 
 
 class NumberType(Type):
@@ -124,6 +130,8 @@ class NumberType(Type):
         string = "Number"
         return string
 
+    def toType(self,symtab):
+        return Matrix()
 
 class MatrixType(Type):
 
@@ -136,6 +144,10 @@ class MatrixType(Type):
         string = "Matrix(%d,%d)" % (self._rows,self._cols)
         return string
     
+    def toType():
+        return Matrix()
+    
+    
 
 class ColumnVectorType(MatrixType):
 
@@ -145,6 +157,9 @@ class ColumnVectorType(MatrixType):
     def printAST(self, level):
         string = "Column(%d)" % (self._rows)
         return string
+    
+    def toType(self,symtab):
+        return Matrix()
 
 
 class RowVectorType(MatrixType):
@@ -156,6 +171,8 @@ class RowVectorType(MatrixType):
         string = "Row(%d)" % (self._cols)
         return string
 
+    def toType(self,symtab):
+        return Matrix()
 
 class Statement(Trinity):
     def __init__(self):
@@ -245,7 +262,12 @@ class AssignmentStatement(Statement):
         rtype = self._rvalue.check(symtab)
         if ltype != rtype :
             print "Error : Assigment of %d to %d " % (ltype.__str__(),rtype.__str__())
-         
+        else:
+            if (type(ltype) is Matrix) & (type(rtype) is Matrix) :
+                if ltype._rows != rtype.rows | ltype._cols != rtype.cols :
+                    message = "Error : Matrix assignment sizes don't match "
+                    raise TrinityMatrixDimensionError(message)
+    
 class Variable(Expression):
     
     def __init__(self, position, identifier):
@@ -542,6 +564,12 @@ class VariableDeclarationAssign(VariableDeclaration):
         if rtype != self._type:
             message =  "Error : Trying to assing %s to %s \n " % (rtype.__str__(),self._type.__str__())
             raise TrinityTypeError(message)
+        else: 
+            if rtype.check() is Matrix & ltype.toType is Matrix : 
+                if ltype.cols != rtype._cols | ltype.rows != rtype._rows : 
+                    message = "Error : Matrix dimensions between asignment and"
+                    message += " declaration dont match" 
+                    raise TrinityMatrixDimensionError(message)
 
 class BinaryExpression(Expression):
 
