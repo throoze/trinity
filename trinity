@@ -18,7 +18,12 @@ from lexer.lexer import Lexer
 from lexer.exceptions import LexicographicalError
 
 from lang import lexical_specs, syntactic_specs
-from lang.exceptions import TrinitySyntaxError
+from lang.exceptions import (
+    TrinitySyntaxError,
+    TrinityScopeError,
+    TrinityTypeError,
+    TrinityMatrixDimensionError
+    )
 
 import ply.yacc as yacc
 import sys
@@ -72,6 +77,6 @@ except TrinityScopeError as sce:
     print sce
 except TrinityTypeError as te:
     print te
-except TrinityMathDimensionError as mde:
+except TrinityMatrixDimensionError as mde:
     print mde
     exit(ERR_SCOPE_ERROR)
