@@ -405,18 +405,27 @@ class ProjectedVariable(Expression):
         return string
     
     def check(self,symtab):
-        symtab.lookup(self._matrix,token)
-        if self._component is None : 
-            if type(self._row.check(symtab)) is not Number | type(self._col.check(symtab))is not Number:
-                message = " Error projected matrix expression is not Number \n"
-                raise TrinityTypeError(message)
-        else : 
+        symtab.lookup(self._matrix, self._position)
+        matrix_type = self._matrix.check(symtab)
+        if component is None:
+            if type(self._row.check(symtab)) is not Number:
+                error = "In line %d, column %d, " % self._position
+                error += "expression for rows in matrix projection is not a Number."
+                raise TrinityTypeError(error)
+            if type(self._col.check(symtab))is not Number:
+                error = "In line %d, column %d, " % self._position
+                error += "expression for columns in matrix projection is not a Number."
+                raise TrinityTypeError(error)
+        else:
             if type(self._component.check(symtab)) is not Number:
-                message = " Error projected matrix expression is not Number \n"
-                raise TrinityTypeError(message)
-        t=Number()
-        return t;
-                
+                error = "In line %d, column %d, " % self._position
+                error += "expression in vector projection is not a Number."
+                raise TrinityTypeError(error)
+            if matrix_type.rows != 1 or matrix_type.cols != 1:
+                error = "In line %d, column %d, " % self._position
+                error += "matrix has not vectorial dimentions (either rows or columns equals to 1)."
+                raise TrinityMatrixDimensionError(error)
+        return Number(self._position);                
 
 
 class ReturnStatement(Statement):
@@ -430,6 +439,18 @@ class ReturnStatement(Statement):
         string += "\n%s" % self._expression.printAST(level+1)
         return string
 
+    def check(self, symtab):
+        if not symtab.isInFunction():
+            error = "In line %d, column %d, " % self._position
+            error += "return statement occurs out of a function definition."
+            raise TrinityScopeError(error)
+        else:
+            ret_type = self._expression.check(symtab)
+            if not ret_type.compare(symtab.getFunctionType()):
+                error = "In line %d, column %d, " % self._position
+                error += "return expression type (%s) is not the function return type (%s)." % ret_type, symtab.getFunctionType()
+                raise TrinityTypeError(error)
+        return ret_type
 
 class DiscardedExpression(Statement):
 

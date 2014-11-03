@@ -33,6 +33,9 @@ class String(Type):
 
     def __str__(self):
         return "String"
+
+    def compare(self, other):
+        return type(self) is type(other)
         
 
 class Boolean(Type):
@@ -43,6 +46,9 @@ class Boolean(Type):
 
     def __str__(self):
         return "Boolean"
+
+    def compare(self, other):
+        return type(self) is type(other)
         
 
 class Number(Type):
@@ -53,6 +59,9 @@ class Number(Type):
 
     def __str__(self):
         return "Number"
+
+    def compare(self, other):
+        return type(self) is type(other)
 
 
 class Matrix(Type):
@@ -66,6 +75,12 @@ class Matrix(Type):
     def __str__(self):
         return "Matrix(%d,%d)" % (self.rows, self.cols)
 
+    def compare(self, other):
+        ok = type(self) is type(other)
+        if ok:
+            ok = ok and self.rows == other.rows and self.cols == other.cols
+        return ok
+
 
 class Function(Type):
     """Represents the Function type"""
@@ -78,6 +93,16 @@ class Function(Type):
 
     def __str__(self):
         return "Function(%d)" % self.n_args
+
+    def compare(self, other):
+        ok = type(self) is type(other)
+        if ok:
+            ok = ok and self.n_args == other.n_args
+            ok = ok and self.return_type.compare(other.return_type)
+            ok = ok and len(self.args_types) == len(args_types)
+        for i in range(len(self.args_types)):
+            ok = ok and self.args_types[i].compare(other.args_types[i])
+        return ok
 
 
 class SymTable(object):

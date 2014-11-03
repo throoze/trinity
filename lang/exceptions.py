@@ -41,4 +41,4 @@ class TrinityTypeError(TrinityException):
 class TrinityMatrixDimensionError(TrinityException):
     
     def __unicode__(self):
-        string = "TrinityMatrixDimension Error : %s" % self._error
+        string = "TrinityMatrixDimensionError : %s" % self._error
