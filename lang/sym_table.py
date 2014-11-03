@@ -59,8 +59,9 @@ class SymTable(object):
     Trinity language symbol table. Represents a context and
     ensures the proper checking of names scope.
     """
+    SPACE="    " 
 
-    def __init__(self, father=None, scope={}, in_function=None):
+    def __init__(self, father=None, scope={}, in_function=None,belongsto=None ):
         """
         Params:
             scope  :
@@ -78,6 +79,7 @@ class SymTable(object):
             self._in_function = father.isInFunction()
         else:
             self._in_function = in_function
+        self._belong= belongsto 
 
     def isInFunction(self):
         return self._in_function
@@ -114,4 +116,12 @@ class SymTable(object):
             raise TrinityScopeError(error)
 
     def __str__(self):
-        return "Symtable"
+        return self.printDic(1)
+
+    
+    def printDic(self, indent):
+        string = indent*SPACE + "New context of %d : \n" % (self._belong) 
+        for x in  self._scope :
+            string += indent*" "+ x + " : " +  self._scope[x].printAST(indent)+"\n"
+        for child in self._children : 
+            child.printDic(indent +1 )
