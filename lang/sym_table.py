@@ -45,8 +45,8 @@ class Matrix(Type):
 class Function(Type):
     """Represents the Function type"""
 
-    def __init__(self, n_args, args_types, return_type):
-        self.n_args = n_args
+    def __init__(self, args_types, return_type):
+        self.n_args = len(args_types)
         self.args_types = args_types
         self.return_type = return_type
 
@@ -60,11 +60,27 @@ class SymTable(object):
     ensures the proper checking of names scope.
     """
 
-    def __init__(self, scope, father=None):
+    def __init__(self, father=None, scope={}, in_function=None):
+        """
+        Params:
+            scope  :
+                type : dictionary
+                        keys   : names of functions or variables.
+                        values : type class of the functions or variables.
+            father :
+                type: SymTable father of this SymTable.
+        """
         self._scope = scope
         self._children = []
         if father is not None: father._birth(self)
         self._father = father
+        if in_function is None:
+            self._in_function = father.isInFunction()
+        else:
+            self._in_function = in_function
+
+    def isInFunction(self):
+        return self._in_function
 
     def addName(self, name, type_class, position):
         """
@@ -97,10 +113,5 @@ class SymTable(object):
             error += "variable of function '%s' not defined in this scope" % name
             raise TrinityScopeError(error)
 
-    def printScope(self, name):
-        """
-        Prints the most inmediate scope
-        TODO: Fix this
-        """
-        print "Scope %s" % name
-        print self._head
+    def __str__(self):
+        return "Symtable"

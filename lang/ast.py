@@ -39,14 +39,15 @@ class Trinity(object):
     
     def check(self):
         symtab=SymTable()
-        for fun in self._functions :
-            symtab.addName(fun._name,fun._type,token) # Duda en cual es el token
+        for fun in self._functions:
+            symtab.addName(fun._name, fun.functionType(), self._position)
         if self._functions is not None:
-            for fun in self._functions :
+            for fun in self._functions:
                 fun.check(symtab)
         if self._statements is not None:
-            for state in self._statements : 
+            for state in self._statements: 
                 state.check(symtab)
+        return symtab
 
 class FunctionDefinition(Trinity):
 
@@ -54,7 +55,7 @@ class FunctionDefinition(Trinity):
         self._position   = position
         self._name       = name
         self._params     = params
-        self._type       = return_type
+        self._type       = return_type.toType()
         self._statements = statements
     
     def printAST(self,level):
@@ -74,9 +75,15 @@ class FunctionDefinition(Trinity):
         string += "\n" + self.getIndent(level) + "end of Function Declaration\n"
         return string
 
+    def functionType(self):
+        types = []
+        for param in self._params:
+            types.append(param.getType())
+        return Function(types, self._type)
+
+
     def check(self,symtab):
-        
-        symtab.push()
+        sym_table = SymTable(in_function=True)
         for param in self._params:
             symtab.addName(param._name,param._type,token)
             
@@ -89,8 +96,11 @@ class FormalParameter(Trinity):
 
     def __init__(self, position, data_type, name):
         self._position = position
-        self._type = data_type
+        self._type = data_type.toType()
         self._name = name
+
+    def getType(self):
+        return self._type
 
     def printAST(self,level):
         
