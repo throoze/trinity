@@ -66,14 +66,15 @@ class SymTable(object):
         if father is not None: father._birth(self)
         self._father = father
 
-    def addName(self, name, type_class):
+    def addName(self, name, type_class, position):
         """
         Adds a new name to the most inmediate scope
         """
         if name in self._scope:
-            message = ""
-            message += "Variable or function '%s' is already defined." % name
-            raise TrinityScopeError(message)
+            error = ""
+            error += "In line %d, column %d, " % position
+            error += "variable or function '%s' is already defined." % name
+            raise TrinityScopeError(error)
         self._scope[name] = type_class
 
     def _birth(self, child):
@@ -82,7 +83,7 @@ class SymTable(object):
         """
         self._children.append(child)
 
-    def lookup(self, name):
+    def lookup(self, name, position):
         """
         Looks for a given name in the most inmediate scope. If it is not found,
         looks in the next one until it finds it or, raise an exception if it
@@ -91,7 +92,9 @@ class SymTable(object):
         if name in self._scope: return self._scope[name]
         elif self._father is not None: return self._father.lookup(name)
         else:
-            error += "Variable of function '%s' not defined in this scope" % name
+            error = ""
+            error += "In line %d, column %d, " % position
+            error += "variable of function '%s' not defined in this scope" % name
             raise TrinityScopeError(error)
 
     def printScope(self, name):
