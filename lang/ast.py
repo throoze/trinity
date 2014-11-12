@@ -642,15 +642,10 @@ class VariableDeclarationAssign(VariableDeclaration):
     
     def check(self,symtab):
         rtype=self._rvalue.check(symtab)
-        if rtype != self._type:
-            message =  "Error : Trying to assing %s to %s \n " % (rtype.__str__(),self._type.__str__())
-            raise TrinityTypeError(message)
-        else: 
-            if rtype.check() is Matrix & ltype.toType is Matrix : 
-                if ltype.cols != rtype._cols | ltype.rows != rtype._rows : 
-                    message = "Error : Matrix dimensions between asignment and"
-                    message += " declaration dont match" 
-                    raise TrinityMatrixDimensionError(message)
+        if not rtype.compare(self._type):
+            error = "In line %d, column %d, " % self._position
+            error += "trying to assing %s to %s" % (rtype.__str__(), self._type.__str__())
+            raise TrinityTypeError(error)
 
 class BinaryExpression(Expression):
 
@@ -682,7 +677,7 @@ class TrueLiteral(Literal, Expression):
         return string
 
     def check(self):
-        t = Boolean()
+        t = Boolean(self._position)
         return t 
     
 class FalseLiteral(Literal, Expression):
@@ -695,7 +690,7 @@ class FalseLiteral(Literal, Expression):
         return string
 
     def check(self):
-        t = Boolean()
+        t = Boolean(self._position)
         return t
         
 
@@ -710,7 +705,7 @@ class NumberLiteral(Literal, Expression):
         return string
 
     def check(self):
-        t = Number()
+        t = Number(self._position)
         return t
 
 class MatrixLiteral(Literal, Expression):
@@ -767,8 +762,18 @@ class FunctionCall(Expression):
         return string
 
     def check(self,symtab):
-        symtab.lookup(self._id,token)
-        #chequear que el nro de args y el tipo concuerden
+        fun_type = symtab.lookup(self._id,self._position)
+        if len(self._arguments) != fun_type.n_args:
+            error = "In line %d, column %d, " % self._position
+            error += "number of arguments doesn't match. "
+            error += " Passed %d arguments and %d were expected." % (len(self._arguments), fun_type.n_args)
+            raise TrinityTypeError(error)
+        for i in range(len(self._arguments)):
+            if not self._arguments[i].compare(fun_type.args_types[i]):
+                error = "In line %d, column %d, " % self._position
+                error += "type of arguments doesn't match. "
+                error += "Passed %s and %s was expected." % (self._arguments[i], fun_type.args_types[i])
+                raise TrinityTypeError(error)
 
 class Sum(BinaryExpression):
 
@@ -779,15 +784,23 @@ class Sum(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Number) :
+        if (type(ltype) is Number) and (type(rtype) is Number) :
             return rtype
-        elif (type(ltype) is Matrix) & (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows | ltype.cols != rtype.cols : 
-                message = "Matrix rows or cols don't match " 
-                raise TrinityMathDimensionError(message)
+        elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
+            if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
+                error = "In line %d, column %d, " % self._position
+                error += "Matrix rows or cols don't match. "
+                error += "Trying to sum (%d,%d) to (%d,%d)." % (
+                    ltype.rows,
+                    ltype.cols,
+                    rtype.rows,
+                    rtype.cols
+                    )
+                raise TrinityMathDimensionError(error)
         else:
-            message =  " Error: trying to (+)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())  
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to sum (+) a '%s' expression to a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class Subtraction(BinaryExpression):
@@ -799,15 +812,23 @@ class Subtraction(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & ( type(rtype) is Number) :
+        if (type(ltype) is Number) and ( type(rtype) is Number) :
             return rtype
-        elif (type(ltype) is Matrix) & (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows | ltype.cols != rtype.cols : 
-                message = "Matrix rows or cols don't match " 
-                raise TrinityMathDimensionError(message)
+        elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
+            if ltype.rows != rtype.rows or ltype.cols != rtype.cols :
+                error = "In line %d, column %d, " % self._position
+                error += "Matrix rows or cols don't match. "
+                error += "Trying to subtract (%d,%d) to (%d,%d)." % (
+                    ltype.rows,
+                    ltype.cols,
+                    rtype.rows,
+                    rtype.cols
+                    )
+                raise TrinityMatrixDimensionError(error)
         else:
-            message =  " Error: trying to (-)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to subtract (-) a '%s' expression to a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class Times(BinaryExpression):
@@ -819,15 +840,23 @@ class Times(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & ( type(rtype) is Number) :
+        if (type(ltype) is Number) and ( type(rtype) is Number) :
             return rtype
-        elif (type(ltype) is Matrix) & (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows | ltype.cols != rtype.cols : 
-                message = "Matrix rows or cols don't match " 
-                raise TrinityMathDimensionError(message)
+        elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
+            if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
+                error = "In line %d, column %d, " % self._position
+                error += "Matrix rows or cols don't match. "
+                error += "Trying to multiply (%d,%d) by (%d,%d)." % (
+                    ltype.rows,
+                    ltype.cols,
+                    rtype.rows,
+                    rtype.cols
+                    )
+                raise TrinityMatrixDimensionError(error)
         else:
-            message = " Error: trying to (*)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to multiply (*) a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
             
 class Division(BinaryExpression):
@@ -842,12 +871,20 @@ class Division(BinaryExpression):
         if (type(ltype) is Number) & (type(rtype) is Number) :
             return rtype
         elif (type(ltype) is Matrix) & (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows | ltype.cols != rtype.cols : 
-                message = "Matrix rows or cols don't match " 
-                raise TrinityMathDimensionError(message)
+            if ltype.rows != rtype.rows | ltype.cols != rtype.cols:
+                error = "In line %d, column %d, " % self._position
+                error += "Matrix rows or cols don't match. "
+                error += "Trying to divide (%d,%d) by (%d,%d)." % (
+                    ltype.rows,
+                    ltype.cols,
+                    rtype.rows,
+                    rtype.cols
+                    )
+                raise TrinityMatrixDimensionError(error)
         else:
-            message = " Error: trying to div  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to divide (div) a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class Modulus(BinaryExpression):
@@ -859,15 +896,23 @@ class Modulus(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Number) :
+        if (type(ltype) is Number) and (type(rtype) is Number) :
             return rtype
-        elif (type(ltype) is Matrix) & (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows | ltype.cols != rtype.cols : 
-                message = "Matrix rows or cols don't match " 
-                raise TrinityMathDimensionError(message)
+        elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
+            if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
+                error = "In line %d, column %d, " % self._position
+                error += "Matrix rows or cols don't match. "
+                error += "Trying to compute modulus of (%d,%d) by (%d,%d)." % (
+                    ltype.rows,
+                    ltype.cols,
+                    rtype.rows,
+                    rtype.cols
+                    )
+                raise TrinityMatrixDimensionError(error)
         else:
-            message = " Error: trying to mod  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compute modulus (mod) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class RealDivision(BinaryExpression):
@@ -879,15 +924,23 @@ class RealDivision(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & ( type(rtype) is Number) :            
+        if (type(ltype) is Number) and ( type(rtype) is Number) :            
             return rtype
-        elif (type(ltype) is Matrix) & (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows | ltype.cols != rtype.cols : 
-                message = "Matrix rows or cols don't match " 
-                raise TrinityMathDimensionError(message)
+        elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
+            if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
+                error = "In line %d, column %d, " % self._position
+                error += "Matrix rows or cols don't match. "
+                error += "Trying to divide (%d,%d) by (%d,%d)." % (
+                    ltype.rows,
+                    ltype.cols,
+                    rtype.rows,
+                    rtype.cols
+                    )
+                raise TrinityMatrixDimensionError(error)
         else:
-            message = " Error: trying to /  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to divide (/) a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class RealModulus(BinaryExpression):
@@ -899,15 +952,23 @@ class RealModulus(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Number) :
+        if (type(ltype) is Number) and (type(rtype) is Number) :
             return rtype
-        elif (type(ltype) is Matrix) & (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows | ltype.cols != rtype.cols : 
-                message = "Matrix rows or cols don't match " 
-                raise TrinityMathDimensionError(message)
+        elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
+            if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
+                error = "In line %d, column %d, " % self._position
+                error += "Matrix rows or cols don't match. "
+                error += "Trying to compute modulus of (%d,%d) by (%d,%d)." % (
+                    ltype.rows,
+                    ltype.cols,
+                    rtype.rows,
+                    rtype.cols
+                    )
+                raise TrinityMatrixDimensionError(error)
         else:
-             message =  " Error: trying to (%)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__()) 
-             raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compute modulus (%) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class MatrixSum(BinaryExpression):
@@ -919,13 +980,14 @@ class MatrixSum(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Matrix):
+        if (type(ltype) is Number) and (type(rtype) is Matrix):
             return rtype
-        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix):
             return ltype
         else:
-            message =  " Error: trying to (.+.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compute (.+.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class MatrixSubtraction(BinaryExpression):
@@ -937,13 +999,14 @@ class MatrixSubtraction(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Matrix):
+        if (type(ltype) is Number) and (type(rtype) is Matrix):
             return rtype
-        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
             return ltype
         else:
-            message = " Error: trying to (.-.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compute (.-.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class MatrixTimes(BinaryExpression):
@@ -955,13 +1018,14 @@ class MatrixTimes(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Matrix):
+        if (type(ltype) is Number) and (type(rtype) is Matrix):
             return rtype
-        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
             return ltype
         else:
-            message = " Error, trying to (.*.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compute (.*.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
         
 
 class MatrixDivision(BinaryExpression):
@@ -973,13 +1037,14 @@ class MatrixDivision(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Matrix):
+        if (type(ltype) is Number) and (type(rtype) is Matrix):
             return rtype
-        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
             return ltype
         else:
-            message =  " Error: trying to (.div)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compute (.div.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class MatrixModulus(BinaryExpression):
@@ -991,13 +1056,14 @@ class MatrixModulus(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Matrix):
+        if (type(ltype) is Number) and (type(rtype) is Matrix):
             return rtype
-        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
             return ltype
         else:
-            message =  " Error: trying to (.mod.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compute (.mod.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class MatrixRealDivision(BinaryExpression):
@@ -1009,13 +1075,14 @@ class MatrixRealDivision(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Matrix):
+        if (type(ltype) is Number) and (type(rtype) is Matrix):
             return rtype
-        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
             return ltype
         else:
-            message = " Error: trying to (./.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compute (./.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 class MatrixRealModulus(BinaryExpression):
 
@@ -1026,13 +1093,14 @@ class MatrixRealModulus(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) & (type(rtype) is Matrix):
+        if (type(ltype) is Number) and (type(rtype) is Matrix):
             return rtype
-        elif (type(ltype) is Number) & (type(rtype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
             return ltype
         else:
-            message =  " Error: trying to (.%.)  %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
-            raise TrinityTypeError(message)
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compute (.%.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class Equivalence(BinaryExpression):
@@ -1044,12 +1112,12 @@ class Equivalence(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) == type(rtype)):
-            t = Boolean()
-            return t
+        if ltype.compare(rtype):
+            return ltype
         else:
-            message = " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
-            raise TrinityTypeException(message) 
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compare (==) a '%s' expression with a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            raise TrinityTypeError(error)
 
 
 class NotEquivalence(BinaryExpression):
