@@ -9,7 +9,7 @@
 # Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
 # ------------------------------------------------------------
-from exceptions import TrinityScopeError
+from exceptions import *
 
 
 class Type(object):
@@ -78,7 +78,10 @@ class Matrix(Type):
     def compare(self, other):
         ok = type(self) is type(other)
         if ok:
-            ok = ok and self.rows == other.rows and self.cols == other.cols
+            ok = self.rows == other.rows and self.cols == other.cols
+            if not ok : 
+                error = "Trying to compare diferent sized matrices " 
+                raise TrinityMatrixDimensionError(error)
         return ok
 
 
@@ -134,6 +137,7 @@ class SymTable(object):
         else:
             self._in_function = in_function
         if self._in_function is True:
+
             if function_type is None:
                 if father is not None:
                     self._function_type = father.getFunctionType()
