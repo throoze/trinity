@@ -676,7 +676,7 @@ class TrueLiteral(Literal, Expression):
         string = "%sTrue Boolean Literal" % self.getIndent(level)
         return string
 
-    def check(self):
+    def check(self, symtab):
         t = Boolean(self._position)
         return t 
     
@@ -689,7 +689,7 @@ class FalseLiteral(Literal, Expression):
         string = "%sFalse Boolean Literal" % self.getIndent(level)
         return string
 
-    def check(self):
+    def check(self, symtab):
         t = Boolean(self._position)
         return t
         
@@ -704,7 +704,7 @@ class NumberLiteral(Literal, Expression):
         string = "%sNumber Literal: %s" % (self.getIndent(level), self._value)
         return string
 
-    def check(self):
+    def check(self, symtab):
         t = Number(self._position)
         return t
 
@@ -1249,6 +1249,9 @@ class UnaryExpression(Expression):
         string += "\n%sOperand:" % self.getIndent(level+1)
         string += "\n" + self._operand.printAST(level+2)
         return string
+
+    def execute(self, symtab):
+        return self._function(self._operand.execute(symtab))
 
 
 class UnaryMinus(UnaryExpression):
