@@ -570,7 +570,7 @@ def p_ArgList_list(p):
     '''
     ArgList : ArgList Tk_comma Expression
     '''    
-    p[0] = p[1].append(p[3])
+    p[0] = p[1] + [p[3]] 
 
 
 def p_lambda(p):
