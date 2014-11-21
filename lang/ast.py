@@ -366,10 +366,13 @@ class ProjectedMatrix(Expression):
                 error = "In line %d, column %d, " % self._position
                 error += "expression in vector projection is not a Number."
                 raise TrinityTypeError(error)
-            if matrix_type.rows != 1 or matrix_type.cols != 1:
-                error = "In line %d, column %d, " % self._position
-                error += "matrix has not vectorial dimentions (either rows or columns equals to 1)."
-                raise TrinityMatrixDimensionError(error)
+            if matrix_type is not None:
+
+                if matrix_type.rows != 1 or matrix_type.cols != 1:
+                    error = "In line %d, column %d, " % self._position
+                    error += "matrix has not vectorial dimentions (either rows or columns equals to 1)."
+                    raise TrinityMatrixDimensionError(error)
+
         return Number(self._position);
 
 
@@ -682,7 +685,7 @@ class TrueLiteral(Literal, Expression):
         string = "%sTrue Boolean Literal" % self.getIndent(level)
         return string
 
-    def check(self, symtab):
+    def check(self,symtab):
         t = Boolean(self._position)
         return t 
     
@@ -769,17 +772,21 @@ class FunctionCall(Expression):
 
     def check(self,symtab):
         fun_type = symtab.lookup(self._id,self._position)
-        if len(self._arguments) != fun_type.n_args:
-            error = "In line %d, column %d, " % self._position
-            error += "number of arguments doesn't match. "
-            error += " Passed %d arguments and %d were expected." % (len(self._arguments), fun_type.n_args)
-            raise TrinityTypeError(error)
-        for i in range(len(self._arguments)):
-            if not self._arguments[i].compare(fun_type.args_types[i]):
+        if self._arguments is not None:
+            if len(self._arguments) != fun_type.n_args:
                 error = "In line %d, column %d, " % self._position
-                error += "type of arguments doesn't match. "
-                error += "Passed %s and %s was expected." % (self._arguments[i], fun_type.args_types[i])
+                error += "number of arguments doesn't match. "
+                error += " Passed %d arguments and %d were expected." % (len(self._arguments), fun_type.n_args)
                 raise TrinityTypeError(error)
+            for i in range(len(self._arguments)):
+                if not self._arguments[i].check(symtab).compare(fun_type.args_types[i]):
+                    error = "In line %d, column %d, " % self._position
+                    error += "type of arguments doesn't match. "
+                    error += "Passed %s and %s was expected." % (self._arguments[i], fun_type.args_types[i])
+                    raise TrinityTypeError(error)
+        return fun_type.return_type
+        
+      
 
 class Sum(BinaryExpression):
 
@@ -851,7 +858,7 @@ class Times(BinaryExpression):
         if (type(ltype) is Number) and ( type(rtype) is Number) :
             return rtype
         elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
+            if ltype.rows != rtype.cols or ltype.cols != rtype.rows:
                 error = "In line %d, column %d, " % self._position
                 error += "Matrix rows or cols don't match. "
                 error += "Trying to multiply (%d,%d) by (%d,%d)." % (

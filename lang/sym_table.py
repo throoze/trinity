@@ -176,11 +176,11 @@ class SymTable(object):
         name.
         """
         if name in self._scope: return (self._scope[name])[0]
-        elif self._father is not None: return self._father.lookup(name)
+        elif self._father is not None: return self._father.lookup(name,position)
         else:
             error = ""
             error += "In line %d, column %d, " % position
-            error += "variable or function '%s' not defined in this scope" % name
+            error += "variable or function '%s' not defined in this scope" % name.printAST(0)
             raise TrinityScopeError(error)
 
     def getValue(self, name, position):
@@ -205,7 +205,7 @@ class SymTable(object):
     def printDic(self, indent):
         string = indent*self.SPACE + "New context of :" 
         for x in  self._scope :
-            string += indent*" "+ x + " : " +  ((self._scope[x])[0]).printAST(indent)+"\n"
+            string += indent*" "+ x + " : " +  ((self._scope[x])[0]).__str__()+"\n"
         for child in self._children : 
             string += child.printDic(indent +1 )
         return string 
