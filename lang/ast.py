@@ -670,8 +670,9 @@ class BinaryExpression(Expression):
         string += "\n%sRight Operand:" % self.getIndent(level+1)
         string += "\n%s" % self._right.printAST(level+2)
         return string
-    
-            
+
+    def execute(self, symtab):
+        return self._function(self._left.execute(symtab), self._right.execute(symtab))
 
 class TrueLiteral(Literal, Expression):
 
@@ -1095,7 +1096,8 @@ class MatrixRealDivision(BinaryExpression):
 class MatrixRealModulus(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(MatrixRealModulus, self).__init__(position, left, None, right)
+        super(MatrixRealModulus, self).__init__(
+            position, left, MatrixRealModulus.matrix_real_modulus, right)
         self._operation = "Matrix Real Modulus"
 
     def check(self, symtab):
@@ -1110,6 +1112,10 @@ class MatrixRealModulus(BinaryExpression):
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute (.%.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
+
+    @staticmethod
+    def matrix_real_modulus(left, right):
+        pass
 
 
 class Equivalence(BinaryExpression):
@@ -1280,8 +1286,16 @@ class UnaryMinus(UnaryExpression):
 class Transpose(UnaryExpression):
     
     def __init__(self, position, operand):
-        super(Transpose, self).__init__(position, None, operand)
+        super(Transpose, self).__init__(position, Transpose.traspose, operand)
         self._operation = "Matrix Transpose"
+
+    @staticmethod
+    def transpose(matrix):
+        transposed = ones(len(matrix[1]),len(matrix))
+        for i in range(len(matrix)):
+            for j in range(len(matrix[1])):
+                transposed[j][i] = matrix[i][j]
+        return transposed
 
     def check(self,symtab):
         otype = self._operand.check(symtab)

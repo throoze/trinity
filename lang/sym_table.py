@@ -81,6 +81,14 @@ class Matrix(Type):
             ok = ok and self.rows == other.rows and self.cols == other.cols
         return ok
 
+    @staticmethod
+    def ones(m,n):
+        ones_matrix = range(m)
+        for row in ones_matrix:
+            ones_matrix[row] = [0] * n
+        return ones_matrix
+
+
 
 class Function(Type):
     """Represents the Function type"""
