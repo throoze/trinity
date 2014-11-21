@@ -323,13 +323,13 @@ def p_Expression_strict(p):
 
 def p_ProjectedMatrix_2D(p):
     '''
-    ProjectedMatrix : Matrix Tk_obrack  Expression Tk_comma Expression Tk_cbrack
+    ProjectedMatrix : Expression Tk_obrack  Expression Tk_comma Expression Tk_cbrack
     '''
     p[0] = ProjectedMatrix((p.lineno(0), p.lexpos(0)), p[1],p[3],p[5])
 
 def p_ProjectedMatrix_1D(p):
     '''
-    ProjectedMatrix : Matrix Tk_obrack  Expression  Tk_cbrack
+    ProjectedMatrix : Expression Tk_obrack  Expression  Tk_cbrack
     '''
     p[0] = ProjectedVector((p.lineno(0), p.lexpos(0)), p[1],p[3])
 

@@ -10,6 +10,7 @@
 # ------------------------------------------------------------
 
 from sym_table import * 
+from exceptions import *
 
 class Trinity(object):
 
@@ -197,7 +198,7 @@ class RowVectorType(MatrixType):
         string = "Row(%d)" % (self._cols)
         return string
 
-    def toType(self,symtab):
+    def toType(self):
         return Matrix(1, self._cols, self._position)
 
 class Statement(Trinity):
@@ -298,7 +299,7 @@ class AssignmentStatement(Statement):
             raise TrinityTypeError(error)
         else:
             if (type(ltype) is Matrix) & (type(rtype) is Matrix) :
-                if ltype._rows != rtype.rows | ltype._cols != rtype.cols :
+                if (ltype.rows != rtype.rows) | (ltype.cols != rtype.cols) :
                     error = "In line %d, column %d, matrix sizes don't match. " % self._position
                     error += "Trying to assing (%d,%d) to (%d,%d)." % (rtype._rows, rtype._cols, ltype._rows, ltype._cols)
                     raise TrinityMatrixDimensionError(error)
@@ -312,6 +313,11 @@ class Variable(Expression):
     def printAST(self, level):
         string = "%sVariable: %s" % (self.getIndent(level), self._id)
         return string
+
+    def __str__(self, level):
+        string = "%sVariable: %s" % (self.getIndent(level), self._id)
+        return string
+
     
     def check(self,symtab):
         return symtab.lookup(self._id, self._position)
@@ -346,7 +352,7 @@ class ProjectedMatrix(Expression):
 
     def check(self,symtab):
         matrix_type = self._matrix.check(symtab)
-        if component is None:
+        if self._component is None:
             if type(self._row.check(symtab)) is not Number:
                 error = "In line %d, column %d, " % self._position
                 error += "expression for rows in matrix projection is not a Number."
@@ -783,6 +789,7 @@ class Sum(BinaryExpression):
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
+        print ltype
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Number) :
             return rtype
@@ -814,6 +821,7 @@ class Subtraction(BinaryExpression):
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and ( type(rtype) is Number) :
             return rtype
+        
         elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
             if ltype.rows != rtype.rows or ltype.cols != rtype.cols :
                 error = "In line %d, column %d, " % self._position
@@ -1095,6 +1103,7 @@ class MatrixRealModulus(BinaryExpression):
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Matrix):
             return rtype
+
         elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
             return ltype
         else:
@@ -1145,7 +1154,7 @@ class GreaterOrEqual(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if type(ltype) is not Number | type(rtype) is not Number : 
+        if (type(ltype) is not Number) | (type(rtype) is not Number) : 
             message =  " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
             raise TrinityTypeException(message)
         else:
@@ -1162,7 +1171,7 @@ class LessOrEqual(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if type(ltype) is not Number | type(rtype) is not Number : 
+        if (type(ltype) is not Number) | (type(rtype) is not Number) : 
             message =  " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
             raise TrinityTypeException(message)
         else:
@@ -1179,7 +1188,7 @@ class Greater(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if type(ltype) is not Number | type(rtype) is not Number : 
+        if (type(ltype) is not Number) | (type(rtype) is not Number ): 
             message =  " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
             raise TrinityTypeException(message)
         else:
@@ -1196,7 +1205,7 @@ class Less(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if type(ltype) is not Number | type(rtype) is not Number : 
+        if (type(ltype) is not Number) | (type(rtype) is not Number) : 
             message =  " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
             raise TrinityTypeException(message)
         else:

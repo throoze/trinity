@@ -195,7 +195,7 @@ class SymTable(object):
         else:
             error = ""
             error += "In line %d, column %d, " % position
-            error += "variable or function '%s' not defined in this scope" % name
+            error += "variable or function '%s' not defined in this scope" % name.printAST(0)
             raise TrinityScopeError(error)
 
     def __str__(self):
@@ -203,8 +203,9 @@ class SymTable(object):
 
     
     def printDic(self, indent):
-        string = indent*SPACE + "New context of %d : \n" % (self._belong) 
+        string = indent*self.SPACE + "New context of :" 
         for x in  self._scope :
             string += indent*" "+ x + " : " +  ((self._scope[x])[0]).printAST(indent)+"\n"
         for child in self._children : 
-            child.printDic(indent +1 )
+            string += child.printDic(indent +1 )
+        return string 
