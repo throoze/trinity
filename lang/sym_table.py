@@ -229,7 +229,22 @@ class SymTable(object):
         given name.
         """
         if name in self._scope: return (self._scope[name])[1]
-        elif self._father is not None: return self._father.lookup(name)
+        elif self._father is not None: return self._father.getValue(name)
+        else:
+            error = ""
+            error += "In line %d, column %d, " % position
+            error += "variable or function '%s' not defined in this scope" % name.printAST(0)
+            raise TrinityScopeError(error)
+
+    def get(self, name, position):
+        """
+        Looks for a given name in the most inmediate scope. If it is not found,
+        looks in the next one until it finds it or, raise an exception if it
+        doesn't find it in any scope. Returns the tuple associated with the
+        given name.
+        """
+        if name in self._scope: return self._scope[name]
+        elif self._father is not None: return self._father.get(name)
         else:
             error = ""
             error += "In line %d, column %d, " % position

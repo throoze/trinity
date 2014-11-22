@@ -40,10 +40,16 @@ class TrinityTypeError(TrinityException):
         return string
 
 class TrinityMatrixDimensionError(TrinityException):
-    
+
     def __unicode__(self):
         string = "TrinityMatrixDimensionError : %s" % self._error
-        return string 
+        return string
+
+class TrinityMatrixDimensionAccessError(TrinityException):
+
+    def __unicode__(self):
+        string = "TrinityMatrixDimensionAccessError : %s" % self._error
+        return string
 
 
 class TrinityZeroDivisionError(TrinityException):

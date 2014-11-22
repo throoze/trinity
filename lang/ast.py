@@ -308,7 +308,7 @@ class AssignmentStatement(Statement):
         string += "\n%s" % self._rvalue.printAST(level+2)
         return string
     
-    def check(self,symtab):
+    def check(self, symtab):
         ltype = self._lvalue.check(symtab)
         rtype = self._rvalue.check(symtab)
         if type(ltype) is not type(rtype):
@@ -321,6 +321,40 @@ class AssignmentStatement(Statement):
                     error = "In line %d, column %d, matrix sizes don't match. " % self._position
                     error += "Trying to assing (%d,%d) to (%d,%d)." % (rtype._rows, rtype._cols, ltype._rows, ltype._cols)
                     raise TrinityMatrixDimensionError(error)
+
+    def execute(self, symtab):
+        if type(self._lvalue) is Variable:
+            symtab.setValue(self._lvalue._id, self._rvalue.execute(symtab), self._position)
+        elif type(self._lvalue) is ProjectedVariable:
+            if self._lvalue._component is None:
+                matrix = symtab.getValue(self._lvalue._matrix._id, self._position)
+                try:
+                    matrix[int(self._lvalue._row)][int(self._lvalue._col)] = self._rvalue.execute(symtab)
+                except ValueError:
+                    error = "In line %d, column %d, " % self._position
+                    error += "trying to access matrix with a non integer number: (%d, %d)" % (self._row, self._col)
+                    raise TrinityMatrixDimensionAccessError(error)
+            else:
+                type_class, matrix = symtab.get(self._lvalue._matrix._id, self._position)
+                if type(type_class) is Matrix:
+                    if type_class.rows == 0:
+                        try:
+                            matrix[0][int(self._component)] = self._rvalue.execute(symtab)
+                        except ValueError:
+                            error = "In line %d, column %d, " % self._position
+                            error += "trying to access matrix with a non integer number: (%d, %d)" % (self._row, self._col)
+                            raise TrinityMatrixDimensionAccessError(error)
+                    elif type_class.cols == 0:
+                        try:
+                            matrix[int(self._component)][0] = self._rvalue.execute(symtab)
+                        except ValueError:
+                            error = "In line %d, column %d, " % self._position
+                            error += "trying to access matrix with a non integer number: (%d, %d)" % (self._row, self._col)
+                            raise TrinityMatrixDimensionAccessError(error)
+            symtab.setValue(self._lvalue._matrix._id, matrix, self._position)
+        return True
+
+        
     
 class Variable(Expression):
     
@@ -337,8 +371,11 @@ class Variable(Expression):
         return string
 
     
-    def check(self,symtab):
+    def check(self, symtab):
         return symtab.lookup(self._id, self._position)
+
+    def execute(self, symtab):
+        return symtab.getValue(self._id, self._position)
 
 class ProjectedMatrix(Expression):
 
@@ -368,7 +405,7 @@ class ProjectedMatrix(Expression):
         return string
         return string
 
-    def check(self,symtab):
+    def check(self, symtab):
         matrix_type = self._matrix.check(symtab)
         if self._component is None:
             if type(self._row.check(symtab)) is not Number:
@@ -392,6 +429,33 @@ class ProjectedMatrix(Expression):
             #         raise TrinityMatrixDimensionError(error)
 
         return Number(self._position);
+
+    def execute(self, symtab):
+        matrix = self._matrix.execute(symtab)
+        result = None
+        if self._component is None:
+            try:
+                result =  matrix[int(self._row)][int(self._col)]
+            except ValueError:
+                error = "In line %d, column %d, " % self._position
+                error += "trying to access matrix with a non integer number: (%d, %d)" % (self._row, self._col)
+                raise TrinityMatrixDimensionAccessError(error)
+        else:
+            if len(matrix) == 0:
+                try:
+                    result =  matrix[0][int(self._component)]
+                except ValueError:
+                    error = "In line %d, column %d, " % self._position
+                    error += "trying to access matrix with a non integer number: (%d, %d)" % (self._row, self._col)
+                    raise TrinityMatrixDimensionAccessError(error)
+            elif len(matrix[0]) == 0:
+                try:
+                    result =  matrix[int(self._component)][0]
+                except ValueError:
+                    error = "In line %d, column %d, " % self._position
+                    error += "trying to access matrix with a non integer number: (%d, %d)" % (self._row, self._col)
+                    raise TrinityMatrixDimensionAccessError(error)
+        return result
 
 
 class ProjectedVector(ProjectedMatrix):
@@ -455,7 +519,37 @@ class ProjectedVariable(Expression):
             #     error = "In line %d, column %d, " % self._position
             #     error += "matrix has not vectorial dimentions (either rows or columns equals to 1)."
             #    raise TrinityMatrixDimensionError(error)
-        return Number(self._position);                
+        return Number(self._position);
+
+    def execute(self, symtab):
+        result = None
+        if self._component is None:
+            matrix = self._matrix.execute(symtab)
+            try:
+                result =  matrix[int(self._row)][int(self._col)]
+            except ValueError:
+                error = "In line %d, column %d, " % self._position
+                error += "trying to access matrix with a non integer number: (%d, %d)" % (self._row, self._col)
+                raise TrinityMatrixDimensionAccessError(error)
+        else:
+            type_class, matrix = symtab.get(self._matrix._id, self._position)
+            if type(type_class) is Matrix:
+                if type_class.rows == 0:
+                    try:
+                        result =  matrix[0][int(self._component)]
+                    except ValueError:
+                        error = "In line %d, column %d, " % self._position
+                        error += "trying to access matrix with a non integer number: (%d, %d)" % (self._row, self._col)
+                        raise TrinityMatrixDimensionAccessError(error)
+                elif type_class.cols == 0:
+                    try:
+                        result =  matrix[int(self._component)][0]
+                    except ValueError:
+                        error = "In line %d, column %d, " % self._position
+                        error += "trying to access matrix with a non integer number: (%d, %d)" % (self._row, self._col)
+                        raise TrinityMatrixDimensionAccessError(error)
+        return result
+
 
 
 class ReturnStatement(Statement):
@@ -498,6 +592,9 @@ class DiscardedExpression(Statement):
             exp_type = self._expression.check(symtab)
         return True
 
+    def check(self, symtab):
+        return self._expression.execute(symtab)
+
 
 class IfStatement(Statement):
 
@@ -529,23 +626,24 @@ class IfStatement(Statement):
             error = "In line %d, column %d, " % self._position
             error += "'If' statement condition is not boolean."
             raise TrinityTypeError(message)
-        else:
-            if self._statements is not None : 
-                for state in self._statements : 
-                    state.check(symtab)
-                    if self._alt_statements is not None:
-                        for altstate in self._alt_statements : 
-                            altstate.check(symtab)
+        if self._statements is not None and self._statements != []:
+            for statement in self._statements:
+                statement.check(symtab)
+        if self._alt_statements is not None and self._alt_statements != []:
+            for alt_statement in self._alt_statements:
+                alt_statement.check(symtab)
         return True
 
     def execute(self,symtab):
-       if  self._condition.execute(symtab) :
-           for state in self._statements:
-               state.execute(symtab) 
-           if self._alt_statements is not None:
-               for state in self._statements :
-                   state.execute(symtab)
-       return True 
+        if self._condition.execute(symtab):
+            if self._statements is not None and self._statements != []:
+                for statement in self._statements:
+                    statement.execute(symtab)
+        else:
+            if self._alt_statements is not None and self._alt_statements != []:
+                for alt_statement in self._alt_statements:
+                    alt_statement.execute(symtab)
+        return True 
         
         
 
@@ -583,16 +681,17 @@ class ForStatement(Statement):
         return True
     
     def execute(self,symtab):
-         if self._iterable is not None:
-             m = self._iterable.execute(symtab)
-         sym_table = SymTable(father=symtab)
-         sym_table.addName(self._item, Number(self._position), self._position)
-         for i in range(0,len(m) - 1):
-             for j in range(0,len(m[0]) -1):
-                 if self._statements is not None:
-                     for state in self._statements:
-                         sym_table.setValue(self._item,(m[i])[j],self._position)
-                         state.execute(sym_table)
+        if self._iterable is not None:
+            m = self._iterable.execute(symtab)
+        sym_table = SymTable(father=symtab)
+        sym_table.addName(self._item, Number(self._position), self._position)
+        if self._statements is not None and self._statements != []:
+            for i in range(len(m)):
+                for j in range(len(m[0])):
+                    sym_table.setValue(self._item, m[i][j], self._position)
+                    for state in self._statements:
+                        state.execute(sym_table)
+        return True
                               
            
          
@@ -621,15 +720,16 @@ class WhileStatement(Statement):
             error += "'while' statement condition is not boolean."
             raise TrinityTypeError(error)
         if self._statements is not None:
-            for state in self._statements : 
-                state.check(symtab)
+            for statement in self._statements : 
+                statement.check(symtab)
         return True
         
     def execute(self,symtab):
-        while self._condition.execute(symtab):
-            if self._statements is not None:
-                for state in self._statements:
-                    state.execute(symtab)
+        if self._statements is not None and self._statements != []:
+            while self._condition.execute(symtab):
+                for statement in self._statements:
+                    statement.execute(symtab)
+        return True
 
 
 class BlockStatement(Statement):
@@ -659,7 +759,6 @@ class BlockStatement(Statement):
         if self._declared_vars is not None and self._declared_vars != []: 
             for declared in self._declared_vars:
                 declared.check(sym_table)
-                sym_table.addName(declared._id, declared._type, self._position)
         if self._statements is not None :
             for state in self._statements:
                 state.check(sym_table)
@@ -670,7 +769,6 @@ class BlockStatement(Statement):
         if self._declared_vars is not None and self._declared_vars != []:
             for declared in self._declared_vars:
                 declared.execute(sym_table)
-                sym_table.addName(declared._id,declared._type,self._position)
         if self._statements is not None:
             for state in self._statements:
                 state.execute(sym_table)

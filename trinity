@@ -23,7 +23,8 @@ from lang.exceptions import (
     TrinityScopeError,
     TrinityTypeError,
     TrinityMatrixDimensionError,
-    TrinityZeroDivisionError
+    TrinityZeroDivisionError,
+    TrinityMatrixDimensionAccessError
     )
 
 import ply.yacc as yacc
@@ -39,6 +40,7 @@ ERR_SCOPE_ERROR = 6
 ERR_TYPE_ERROR = 7 
 ERR_MATRIX_DIM_ERROR = 8
 ERR_ZERO_DIVISION = 0
+ERR_MATRIX_DIM_ACCESS_ERROR = 0
 
 usage = ' Usage:\n\n\t$ ./trinity program.ty\n\n where "program.ty" is a file with the program to be analyzed.'
 
@@ -87,3 +89,5 @@ except TrinityMatrixDimensionError as mde:
     exit(ERR_MATRIX_DIM_ERROR)
 except TrinityZeroDivisionError:
     exit(ERR_ZERO_DIVISION)
+except TrinityMatrixDimensionAccessError:
+    exit(ERR_MATRIX_DIM_ACCESS_ERROR)
