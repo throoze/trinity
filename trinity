@@ -76,8 +76,10 @@ except TrinitySyntaxError as se:
     exit(ERR_SYNTAX_ERROR)
 except TrinityScopeError as sce:
     print sce
+    exit(ERR_SCOPE_ERROR)
 except TrinityTypeError as te:
     print te
+    exit(ERR_TYPE_ERROR)
 except TrinityMatrixDimensionError as mde:
     print mde
-    exit(ERR_SCOPE_ERROR)
+    exit(ERR_MATRIX_DIM_ERROR)
