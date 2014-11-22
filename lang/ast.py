@@ -813,6 +813,7 @@ class BinaryExpression(Expression):
         if type(self._left._type) is Matrix and type(self._right._type) is not Matrix:
             return self._function(self._left.execute(symtab), self._right.execute(symtab))
         elif type(self._left._type) is not Matrix and type(self._right._type) is Matrix:
+            pass
 
 
 class Sum(BinaryExpression):
@@ -1409,7 +1410,7 @@ class UnaryMinus(UnaryExpression):
 class Transpose(UnaryExpression):
     
     def __init__(self, position, operand):
-        super(Transpose, self).__init__(position, Transpose.traspose, operand)
+        super(Transpose, self).__init__(position, Transpose.transpose, operand)
         self._operation = "Matrix Transpose"
 
     @staticmethod
