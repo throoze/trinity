@@ -95,7 +95,7 @@ class FunctionDefinition(Trinity):
     def check(self, symtab):
         sym_table = SymTable(symtab, in_function=True, function_type=self._type)
         for param in self._params:
-            symtab.addName(param._name, param._type, param._position)
+            sym_table.addName(param._name, param._type, param._position)
             
         ok = True
         for state in self._statements:
@@ -276,7 +276,12 @@ class ReadStatement(Statement):
         return string
 
     def check(self,symtab):
-        return type(self._variable.check(symtab)) is Number
+        if (type(self._variable.check(symtab)) is Number) or (type(self._variable.check(symtab)) is Boolean):
+            return True
+        else :
+            error = "Trying to read with non-numeric variable " 
+            raise TrinityTypeError(error)
+
 
 class AssignmentStatement(Statement):
 
@@ -369,12 +374,12 @@ class ProjectedMatrix(Expression):
                 error = "In line %d, column %d, " % self._position
                 error += "expression in vector projection is not a Number."
                 raise TrinityTypeError(error)
-            if matrix_type is not None:
+            # if matrix_type is not None:
 
-                if matrix_type.rows != 1 or matrix_type.cols != 1:
-                    error = "In line %d, column %d, " % self._position
-                    error += "matrix has not vectorial dimentions (either rows or columns equals to 1)."
-                    raise TrinityMatrixDimensionError(error)
+            #     if matrix_type.rows != 1 or matrix_type.cols != 1:
+            #         error = "In line %d, column %d, " % self._position
+            #         error += "matrix has not vectorial dimentions (either rows or columns equals to 1)."
+            #         raise TrinityMatrixDimensionError(error)
 
         return Number(self._position);
 
@@ -436,10 +441,10 @@ class ProjectedVariable(Expression):
                 error = "In line %d, column %d, " % self._position
                 error += "expression in vector projection is not a Number."
                 raise TrinityTypeError(error)
-            if matrix_type.rows != 1 or matrix_type.cols != 1:
-                error = "In line %d, column %d, " % self._position
-                error += "matrix has not vectorial dimentions (either rows or columns equals to 1)."
-                raise TrinityMatrixDimensionError(error)
+            # if matrix_type.rows != 1 or matrix_type.cols != 1:
+            #     error = "In line %d, column %d, " % self._position
+            #     error += "matrix has not vectorial dimentions (either rows or columns equals to 1)."
+            #    raise TrinityMatrixDimensionError(error)
         return Number(self._position);                
 
 
@@ -523,6 +528,16 @@ class IfStatement(Statement):
                             altstate.check(symtab)
         return True
 
+    def execute(self,symtab):
+       if  self._condition.execute(symtab) :
+           for state in self._statements:
+               state.execute(symtab) 
+           if self._alt_statements is not None:
+               for state in self._statements :
+                   state.execute(symtab)
+       return True 
+        
+        
 
 class ForStatement(Statement):
 
@@ -558,6 +573,8 @@ class ForStatement(Statement):
             for state in self._statements: 
                 state.check(sym_table)
         return True
+    
+
 
 
 class WhileStatement(Statement):
@@ -794,8 +811,6 @@ class BinaryExpression(Expression):
 
     def execute(self, symtab):
         return self._function(self._left, self._right, symtab)
-        
-
 
 class Sum(BinaryExpression):
 
@@ -959,17 +974,9 @@ class Division(BinaryExpression):
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) & (type(rtype) is Number) :
             return rtype
-        elif (type(ltype) is Matrix) & (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows | ltype.cols != rtype.cols:
-                error = "In line %d, column %d, " % self._position
-                error += "Matrix rows or cols don't match. "
-                error += "Trying to divide (%d,%d) by (%d,%d)." % (
-                    ltype.rows,
-                    ltype.cols,
-                    rtype.rows,
-                    rtype.cols
-                    )
-                raise TrinityMatrixDimensionError(error)
+        elif (type(ltype) is Matrix) or (type(rtype) is Matrix):
+            error = "Can't apply (div) to matrices "  
+            raise TrinityTypeError(error)
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to divide (div) a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
@@ -999,17 +1006,9 @@ class Modulus(BinaryExpression):
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Number) :
             return rtype
-        elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
-                error = "In line %d, column %d, " % self._position
-                error += "Matrix rows or cols don't match. "
-                error += "Trying to compute modulus of (%d,%d) by (%d,%d)." % (
-                    ltype.rows,
-                    ltype.cols,
-                    rtype.rows,
-                    rtype.cols
-                    )
-                raise TrinityMatrixDimensionError(error)
+        elif (type(ltype) is Matrix) or (type(rtype) is Matrix):
+            error = "Can't apply (mod) to matrices "  
+            raise TrinityTypeError(error)
         else:
             error = "In line %d, column %d, " % self._position
             error += "trying to compute modulus (mod) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())
@@ -1039,17 +1038,9 @@ class RealDivision(BinaryExpression):
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and ( type(rtype) is Number) :            
             return rtype
-        elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
-                error = "In line %d, column %d, " % self._position
-                error += "Matrix rows or cols don't match. "
-                error += "Trying to divide (%d,%d) by (%d,%d)." % (
-                    ltype.rows,
-                    ltype.cols,
-                    rtype.rows,
-                    rtype.cols
-                    )
-                raise TrinityMatrixDimensionError(error)
+        elif (type(ltype) is Matrix) or (type(rtype) is Matrix):
+            error = "Can't apply (/) to matrices "  
+            raise TrinityTypeError(error)
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to divide (/) a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
@@ -1080,20 +1071,10 @@ class RealModulus(BinaryExpression):
         if (type(ltype) is Number) and (type(rtype) is Number):
             self._type = rtype
             return rtype
-        elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
-            if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
-                error = "In line %d, column %d, " % self._position
-                error += "Matrix rows or cols don't match. "
-                error += "Trying to compute modulus of (%d,%d) by (%d,%d)." % (
-                    ltype.rows,
-                    ltype.cols,
-                    rtype.rows,
-                    rtype.cols
-                    )
-                raise TrinityMatrixDimensionError(error)
-            else:
-                self._type = rtype
 
+        elif (type(ltype) is Matrix) or (type(rtype) is Matrix):
+            error = "Can't apply (%) to matrices "  
+            raise TrinityTypeError(error)
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute modulus (%) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
@@ -1413,7 +1394,11 @@ class NotEquivalence(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if ltype.compare(rtype):
+        if type(ltype) is type(rtype):
+            if type(ltype) is Matrix  :
+                if (ltype.cols != rtype.cols) or (ltype.cols != rtype.cols):
+                    error = "Trying to compare wrong sized matrices " 
+                    raise TrinityMatrixDimensionError(error)
             t = Boolean()
             self._type = t
             return t
@@ -1608,7 +1593,7 @@ class UnaryMinus(UnaryExpression):
 class Transpose(UnaryExpression):
     
     def __init__(self, position, operand):
-        super(Transpose, self).__init__(position, Transpose.traspose, operand)
+        super(Transpose, self).__init__(position, Transpose.transpose, operand)
         self._operation = "Matrix Transpose"
 
     @staticmethod
