@@ -654,7 +654,12 @@ class VariableDeclaration(Trinity):
         return string
 
     def check(self,symtab):
+        symtab.addName(self._id, self._type, self._position)
         return self._type
+
+    def execute(self, symtab):
+        symtab.addName(self._id, self._type, self._position)
+        return True
 
 class VariableDeclarationAssign(VariableDeclaration):
 
@@ -676,6 +681,13 @@ class VariableDeclarationAssign(VariableDeclaration):
             error = "In line %d, column %d, " % self._position
             error += "trying to assing %s to %s" % (rtype.__str__(), self._type.__str__())
             raise TrinityTypeError(error)
+        symtab.addName(self._id, self._type, self._position)
+        return self._type
+
+    def execute(self, symtab):
+        super(VariableDeclarationAssign, self).execute(symtab)
+        symtab.setValue(self._id, self._rvalue.execute(symtab), self._position)
+        return self._type
 
 class TrueLiteral(Literal, Expression):
 
@@ -688,7 +700,10 @@ class TrueLiteral(Literal, Expression):
 
     def check(self,symtab):
         t = Boolean(self._position)
-        return t 
+        return t
+
+    def execute(self, symtab):
+        return True
     
 class FalseLiteral(Literal, Expression):
 
@@ -702,6 +717,9 @@ class FalseLiteral(Literal, Expression):
     def check(self, symtab):
         t = Boolean(self._position)
         return t
+
+    def execute(self, symtab):
+        return False
         
 
 class NumberLiteral(Literal, Expression):
@@ -717,6 +735,9 @@ class NumberLiteral(Literal, Expression):
     def check(self, symtab):
         t = Number(self._position)
         return t
+
+    def execute(self, symtab):
+        return self._value
 
 class MatrixLiteral(Literal, Expression):
 
@@ -756,7 +777,7 @@ class MatrixLiteral(Literal, Expression):
         return Matrix(rows, cols, self._position)
 
     def execute(self, symtab):
-        pass
+        return self._matrix
 
 class FunctionCall(Expression):
 
