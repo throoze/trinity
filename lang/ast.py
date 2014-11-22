@@ -662,27 +662,6 @@ class VariableDeclarationAssign(VariableDeclaration):
             error += "trying to assing %s to %s" % (rtype.__str__(), self._type.__str__())
             raise TrinityTypeError(error)
 
-class BinaryExpression(Expression):
-
-    def __init__(self, position, left, op, right):
-        super(BinaryExpression, self).__init__()
-        self._position = position
-        self._left = left
-        self._function = op
-        self._right = right
-        self._operation = ""
-
-    def printAST(self, level):
-        string  = "%s%s:" % (self.getIndent(level), self._operation)
-        string += "\n%sLeft Operand:" % self.getIndent(level+1)
-        string += "\n%s" % self._left.printAST(level+2)
-        string += "\n%sRight Operand:" % self.getIndent(level+1)
-        string += "\n%s" % self._right.printAST(level+2)
-        return string
-
-    def execute(self, symtab):
-        return self._function(self._left.execute(symtab), self._right.execute(symtab))
-
 class TrueLiteral(Literal, Expression):
 
     def __init__(self, position):
@@ -792,8 +771,32 @@ class FunctionCall(Expression):
                     error += "Passed %s and %s was expected." % (self._arguments[i], fun_type.args_types[i])
                     raise TrinityTypeError(error)
         return fun_type.return_type
-        
-      
+
+
+
+class BinaryExpression(Expression):
+
+    def __init__(self, position, left, op, right):
+        super(BinaryExpression, self).__init__()
+        self._position = position
+        self._left = left
+        self._function = op
+        self._right = right
+        self._operation = ""
+
+    def printAST(self, level):
+        string  = "%s%s:" % (self.getIndent(level), self._operation)
+        string += "\n%sLeft Operand:" % self.getIndent(level+1)
+        string += "\n%s" % self._left.printAST(level+2)
+        string += "\n%sRight Operand:" % self.getIndent(level+1)
+        string += "\n%s" % self._right.printAST(level+2)
+        return string
+
+    def execute(self, symtab):
+        if type(self._left._type) is Matrix and type(self._right._type) is not Matrix:
+            return self._function(self._left.execute(symtab), self._right.execute(symtab))
+        elif type(self._left._type) is not Matrix and type(self._right._type) is Matrix:
+
 
 class Sum(BinaryExpression):
 
@@ -978,7 +981,8 @@ class RealModulus(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if (type(ltype) is Number) and (type(rtype) is Number) :
+        if (type(ltype) is Number) and (type(rtype) is Number):
+            self._type = rtype
             return rtype
         elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
             if ltype.rows != rtype.rows or ltype.cols != rtype.cols:
@@ -991,6 +995,9 @@ class RealModulus(BinaryExpression):
                     rtype.cols
                     )
                 raise TrinityMatrixDimensionError(error)
+            else:
+                self._type = rtype
+
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute modulus (%) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
@@ -1007,8 +1014,10 @@ class MatrixSum(BinaryExpression):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Matrix):
+            self._type = rtype
             return rtype
         elif (type(rtype) is Number) and (type(ltype) is Matrix):
+            self._type = ltype
             return ltype
         else:
             error = "In line %d, column %d, " % self._position
@@ -1019,96 +1028,163 @@ class MatrixSum(BinaryExpression):
 class MatrixSubtraction(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(MatrixSubtraction, self).__init__(position, left, None, right)
+        super(MatrixSubtraction, self).__init__(position, left, MatrixSubtraction.matrix_subtraction, right)
         self._operation = "Matrix Subtraction"
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Matrix):
+            self._type = rtype
             return rtype
-        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix):
+            self._type = ltype
             return ltype
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute (.-.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
 
+    @staticmethod
+    def matrix_subtraction(left, right):
+        if type(left._type) is Matrix:
+            matrix = left
+            scalar = right
+            return map(lambda x: map(lambda y: y - scalar, x), matrix)
+        elif type(right._type) is Matrix:
+            matrix = right
+            scalar =left
+            return map(lambda x: map(lambda y: scalar - y, x), matrix)
+
 
 class MatrixTimes(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(MatrixTimes, self).__init__(position, left, None, right)
+        super(MatrixTimes, self).__init__(position, left, MatrixTimes.matrix_times, right)
         self._operation = "Matrix Multiplication"
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Matrix):
+            self._type = rtype
             return rtype
-        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix):
+            self._type = ltype
             return ltype
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute (.*.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
+
+    @staticmethod
+    def matrix_times(left, right):
+        if type(left._type) is Matrix:
+            matrix = left
+            scalar = right
+            return map(lambda x: map(lambda y: y * scalar, x), matrix)
+        elif type(right._type) is Matrix:
+            matrix = right
+            scalar =left
+            return map(lambda x: map(lambda y: scalar * y, x), matrix)
         
 
 class MatrixDivision(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(MatrixDivision, self).__init__(position, left, None, right)
+        super(MatrixDivision, self).__init__(position, left, MatrixDivision.matrix_division, right)
         self._operation = "Matrix Division"
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Matrix):
+            self._type = rtype
             return rtype
-        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix):
+            self._type = ltype
             return ltype
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute (.div.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
 
+    @staticmethod
+    def matrix_division(left, right):
+        if type(left._type) is Matrix:
+            matrix = left
+            scalar = right
+            return map(lambda x: map(lambda y: y // scalar, x), matrix)
+        elif type(right._type) is Matrix:
+            matrix = right
+            scalar =left
+            return map(lambda x: map(lambda y: scalar // y, x), matrix)
+
 
 class MatrixModulus(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(MatrixModulus, self).__init__(position, left, None, right)
+        super(MatrixModulus, self).__init__(position, left, MatrixModulus.matrix_modulus, right)
         self._operation = "Matrix Modulus"
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Matrix):
+            self._type = rtype
             return rtype
-        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix):
+            self._type = ltype
             return ltype
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute (.mod.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
 
+    @staticmethod
+    def matrix_modulus(left, right):
+        if type(left._type) is Matrix:
+            matrix = left
+            scalar = right
+            return map(lambda x: map(lambda y: y % scalar, x), matrix)
+        elif type(right._type) is Matrix:
+            matrix = right
+            scalar =left
+            return map(lambda x: map(lambda y: scalar % y, x), matrix)
+
 
 class MatrixRealDivision(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(MatrixRealDivision, self).__init__(position, left, None, right)
+        super(MatrixRealDivision, self).__init__(
+            position, left, MatrixRealDivision.matrix_real_division, right)
         self._operation = "Matrix Real Division"
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Matrix):
+            self._type = rtype
             return rtype
-        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix):
+            self._type = ltype
             return ltype
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute (./.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
+
+    @staticmethod
+    def matrix_real_division(left, right):
+        if type(left._type) is Matrix:
+            matrix = left
+            scalar = right
+            return map(lambda x: map(lambda y: y / scalar, x), matrix)
+        elif type(right._type) is Matrix:
+            matrix = right
+            scalar =left
+            return map(lambda x: map(lambda y: scalar / y, x), matrix)
+
 
 class MatrixRealModulus(BinaryExpression):
 
@@ -1121,9 +1197,10 @@ class MatrixRealModulus(BinaryExpression):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and (type(rtype) is Matrix):
+            self._type = rtype
             return rtype
-
-        elif (type(rtype) is Number) and (type(ltype) is Matrix) : 
+        elif (type(rtype) is Number) and (type(ltype) is Matrix):
+            self._type = ltype
             return ltype
         else:
             error = "In line %d, column %d, " % self._position
@@ -1132,7 +1209,14 @@ class MatrixRealModulus(BinaryExpression):
 
     @staticmethod
     def matrix_real_modulus(left, right):
-        pass
+        if type(left._type) is Matrix:
+            matrix = left
+            scalar = right
+            return map(lambda x: map(lambda y: y % scalar, x), matrix)
+        elif type(right._type) is Matrix:
+            matrix = right
+            scalar =left
+            return map(lambda x: map(lambda y: scalar % y, x), matrix)
 
 
 class Equivalence(BinaryExpression):
@@ -1145,10 +1229,11 @@ class Equivalence(BinaryExpression):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if ltype.compare(rtype):
-            return Boolean(self._position)
+            self._type = Boolean(self._position)
+            return self._type
         else:
             error = "In line %d, column %d, " % self._position
-            error =  "Trying to compare (==) a '%s' expression with a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            error =  "Trying to compare (==) a '%s' expression with a '%s' expression." % (ltype.__str__(),rtype.__str__())
             raise TrinityTypeError(error)
 
 
@@ -1161,12 +1246,15 @@ class NotEquivalence(BinaryExpression):
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
-        if type(ltype) is type(rtype):
+        if ltype.compare(rtype):
             t = Boolean()
+            self._type = t
             return t
         else:
-            message = " Error: comparing   %s expression with %s \n " % (ltype.__str__(),rtype.__str__())
-            raise TrinityTypeError(message) 
+            error = "In line %d, column %d, " % self._position
+            error =  "Trying to compare (/=) a '%s' expression with a '%s' expression." % (ltype.__str__(),rtype.__str__())
+            raise TrinityTypeException(message)
+
 
 class GreaterOrEqual(BinaryExpression):
 
@@ -1199,6 +1287,7 @@ class LessOrEqual(BinaryExpression):
             raise TrinityTypeError(message)
         else:
             t = Boolean()
+            self._type = t
             return t
 
 
@@ -1216,14 +1305,21 @@ class Greater(BinaryExpression):
             raise TrinityTypeError(message)
         else:
             t = Boolean()
+            self._type = t
             return t
 
 
 class Less(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(Less, self).__init__(position, left, lambda x,y: x < y, right)
+        super(Less, self).__init__(position, left, Less.less, right)
         self._operation = "Less"
+
+    @staticmethod
+    def less(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        return e1 < e2
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1233,14 +1329,21 @@ class Less(BinaryExpression):
             raise TrinityTypeError(message)
         else:
             t = Boolean()
+            self._type = t
             return t
 
 
 class And(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(And, self).__init__(position, left, lambda x,y: x and y, right)
+        super(And, self).__init__(position, left, And.and_func, right)
         self._operation = "And"
+
+    @staticmethod
+    def and_func(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        return e1 and e2
            
     def check(self,symtab):
         ltype = self._left.check(symtab)
@@ -1249,22 +1352,30 @@ class And(BinaryExpression):
             raise TrinityTypeError(" Error : right operand is not boolean \n") 
         else : 
             t=Boolean()
+            self._type = t
             return t
     
 
 class Or(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(Or, self).__init__(position, left, lambda x,y: x or y, right)
+        super(Or, self).__init__(position, left, Or.or_func, right)
         self._operation = "Or"
+
+    @staticmethod
+    def or_func(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        return e1 or e2
           
     def check(self,symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is not  Boolean)| (type(rtype) is not  Boolean) : 
              raise TrinityTypeError("Error:right operand is not boolean \n") 
-        else: 
+        else:
             t=Boolean()
+            self._type = t
             return t
 
 class UnaryExpression(Expression):
@@ -1283,21 +1394,29 @@ class UnaryExpression(Expression):
         return string
 
     def execute(self, symtab):
-        return self._function(self._operand.execute(symtab))
+        return self._function(self._operand, symtab)
 
 
 class UnaryMinus(UnaryExpression):
     
     def __init__(self, position, operand):
-        super(UnaryMinus, self).__init__(position, lambda x: - x, operand)
+        super(UnaryMinus, self).__init__(position, UnaryMinus.unary_minus, operand)
         self._operation = "Unary Minus"
+
+    @staticmethod
+    def unary_minus(expression, symtab):
+        operand = expression.execute(symtab)
+        if type(expression._type) is Matrix:
+            return map(lambda x: map(lambda y: - y, x), operand)
+        else:
+            return - operand
         
     def check(self,symtab):
         otype = self._operand.check(symtab)
         if type(otype) is Boolean:
-
             raise TrinityTypeError("Can't apply Unary Minus to boolean expression ") 
         else:
+            self._type = otype
             return otype
 
 class Transpose(UnaryExpression):
@@ -1307,7 +1426,8 @@ class Transpose(UnaryExpression):
         self._operation = "Matrix Transpose"
 
     @staticmethod
-    def transpose(matrix):
+    def transpose(expression, symtab=None):
+        matrix = expression.execute(symtab)
         transposed = ones(len(matrix[1]),len(matrix))
         for i in range(len(matrix)):
             for j in range(len(matrix[1])):
@@ -1319,13 +1439,14 @@ class Transpose(UnaryExpression):
         if type(otype) is not Matrix:
             raise TrinityTypeError("Can't apply traspose to non-matrix expression ") 
         else:
-           return otype
+            self._type = otype
+            return otype
 
         
 class Not(UnaryExpression):
     
     def __init__(self, position, operand):
-        super(Not, self).__init__(position, lambda x: not x, operand)
+        super(Not, self).__init__(position, lambda expression, symtab: not expression.execute(symtab), operand)
         self._operation = "Not"
     
     def check(self,symtab):
@@ -1333,4 +1454,5 @@ class Not(UnaryExpression):
         if type(otype) is not Boolean:
            raise TrinityTypeError("Can't apply not to non-boolean expression ") 
         else:
-           return otype
+            self._type = otype
+            return otype
