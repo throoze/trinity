@@ -52,6 +52,16 @@ class Trinity(object):
             for state in self._statements: 
                 state.check(symtab)
         return symtab
+    
+    def execute(self):
+        sym_table=SymTable()
+        for fun in self._functions:
+            symtab.addName(fun.getName(), fun.functionType(), self._position)
+        if self._statements is not None:
+            for state in self._statements: 
+                state.execute(sym_table)
+        return sym_table
+
 
 class FunctionDefinition(Trinity):
 
@@ -655,11 +665,16 @@ class BlockStatement(Statement):
                 state.check(sym_table)
         return True
             
-    # def execute(self,symtab):
-    #     sym_table=SymTable(father=symtab)
-    #     if self._declared_vars is not None and self._declared_vars != []:
-    #         for declared in self._declared_vars:
-    #             if type(declared) is VariableDeclaration :
+    def execute(self,symtab):
+        sym_table=SymTable(father=symtab)
+        if self._declared_vars is not None and self._declared_vars != []:
+            for declared in self._declared_vars:
+                declared.execute(sym_table)
+                sym_table.addName(declared._id,declared._type,self._position)
+        if self._statements is not None:
+            for state in self._statements:
+                state.execute(sym_table)
+        return True
                     
 
 class VariableDeclaration(Trinity):
