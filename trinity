@@ -69,8 +69,7 @@ parser = yacc.yacc(module=syntactic_specs)
 try:
     ast = parser.parse(lexer=lexer)
     symTable = ast.check()
-    if symTable is not None:
-        print symTable
+    ast.execute()
     exit(SUCCESS)
 except LexicographicalError as le:
     print le
