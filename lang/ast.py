@@ -239,8 +239,35 @@ class PrintStatement(Statement):
             for printa in self._printables :
                 printa.check(symtab)
         return True
+    
 
 
+    def printmatrix(list) :
+        sys.stdout.write("{")
+        for row in list :
+            for value in row :
+                sys.stdout.write(" ")
+                sys.stdout.write(str(value))
+                sys.stdout.write(",")
+            sys.stdout.write(":")
+        sys.stdout.write("}")
+
+
+    
+    def execute(self,symtab):
+        if self._printables is not None:
+            for printa in self._printables:
+                value = printa.execute(symtab)
+                if isinstance(value,list):
+                    printmatrix(list)
+                elif isinstance(value,str):
+                    sys.stdout.write(value) 
+                elif (value is True):
+                    sys.stdout.writ('True') 
+                elif (value is False):
+                    sys.stdout.write('False')
+                else :
+                     sys.stdout.write(str(value))
         
 class Printable(object):
 
@@ -274,6 +301,8 @@ class StringLiteral(Literal):
     def check(self, symtab):
         return String(self._position)
 
+    def execute(self,symtab):
+        return self._value
 
 class ReadStatement(Statement):
 
@@ -291,6 +320,22 @@ class ReadStatement(Statement):
         else :
             error = "Trying to read with non-numeric variable " 
             raise TrinityTypeError(error)
+    
+    def execute(self,symtab):
+        typer = symtab.lookup(self._variable._id)
+        if (type(typer) is Number):
+            s=raw_input()
+            pattern = re.compile('[-]?([0-9]+)(\.[0-9]+)?')
+            ret = pattern.match(pattern,s)
+            if ret is not None:
+                symtab.setValue(self._variable._id,ret,self._position)
+        elif (type(typer) is Boolean):
+            s=raw_input()
+            pattern = re.compile('(True|False)')
+            ret = pattern.match(pattern,s)
+            if ret is not None:
+                symtab.setValue(self._variable._id,ret,self._position)
+
 
 
 class AssignmentStatement(Statement):
