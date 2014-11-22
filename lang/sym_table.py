@@ -191,6 +191,24 @@ class SymTable(object):
             error += "variable or function '%s' not defined in this scope" % name.printAST(0)
             raise TrinityScopeError(error)
 
+    def setValue(self, name, value, position):
+        """
+        Looks for a given name in the most inmediate scope. If it is not found,
+        looks in the next one until it finds it or, raise an exception if it
+        doesn't find it in any scope. Sets the value associated with the given
+        name.
+        """
+        if name in self._scope:
+            current = self._scope[name]
+            new = (current[0], value)
+            self._scope[name] = new
+        elif self._father is not None: return self._father.setValue(name, value, position)
+        else:
+            error = ""
+            error += "In line %d, column %d, " % position
+            error += "variable or function '%s' not defined in this scope" % name.printAST(0)
+            raise TrinityScopeError(error)
+
     def getValue(self, name, position):
         """
         Looks for a given name in the most inmediate scope. If it is not found,
