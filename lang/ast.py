@@ -981,7 +981,6 @@ class RealModulus(BinaryExpression):
         elif (type(ltype) is Matrix) or (type(rtype) is Matrix):
             error = "Can't apply (%) to matrices "  
             raise TrinityTypeError(error)
-
         else:
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute modulus (%) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
