@@ -572,9 +572,20 @@ class ForStatement(Statement):
             state.check(sym_table)
         return True
     
-
-
-
+    def execute(self,symtab):
+         if self._iterable is not None:
+             m = self._iterable.execute(symtab)
+         sym_table = SymTable(father=symtab)
+         sym_table.addName(self._item, Number(self._position), self._position)
+         for i in range(0,len(m) - 1):
+             for j in range(0,len(m[0]) -1):
+                 if self._statements is not None:
+                     for state in self._statements:
+                         sym_table.setValue(self._item,(m[i])[j],self._position)
+                         state.execute(sym_table)
+                              
+           
+         
 class WhileStatement(Statement):
 
     def __init__(self, position, condition, statements):
@@ -604,6 +615,11 @@ class WhileStatement(Statement):
                 state.check(symtab)
         return True
         
+    def execute(self,symtab):
+        while self._condition.execute(symtab):
+            if self._statements is not None:
+                for state in self._statements:
+                    state.execute(symtab)
 
 
 class BlockStatement(Statement):
@@ -639,6 +655,12 @@ class BlockStatement(Statement):
                 state.check(sym_table)
         return True
             
+    # def execute(self,symtab):
+    #     sym_table=SymTable(father=symtab)
+    #     if self._declared_vars is not None and self._declared_vars != []:
+    #         for declared in self._declared_vars:
+    #             if type(declared) is VariableDeclaration :
+                    
 
 class VariableDeclaration(Trinity):
 
