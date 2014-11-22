@@ -88,8 +88,15 @@ class Matrix(Type):
     def ones(m,n):
         ones_matrix = range(m)
         for row in ones_matrix:
-            ones_matrix[row] = [0] * n
+            ones_matrix[row] = [1] * n
         return ones_matrix
+
+    @staticmethod
+    def zeros(m,n):
+        zeros_matrix = range(m)
+        for row in zeros_matrix:
+            zeros_matrix[row] = [0] * n
+        return zeros_matrix
 
 
 

@@ -37,6 +37,7 @@ ERR_SYNTAX_ERROR = 5
 ERR_SCOPE_ERROR = 6
 ERR_TYPE_ERROR = 7 
 ERR_MATRIX_DIM_ERROR = 8
+ERR_ZERO_DIVISION = 0
 
 usage = ' Usage:\n\n\t$ ./trinity program.ty\n\n where "program.ty" is a file with the program to be analyzed.'
 
@@ -83,3 +84,5 @@ except TrinityTypeError as te:
 except TrinityMatrixDimensionError as mde:
     print mde
     exit(ERR_MATRIX_DIM_ERROR)
+except TrinityZeroDivisionError:
+    exit(ERR_ZERO_DIVISION)

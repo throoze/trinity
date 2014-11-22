@@ -44,3 +44,10 @@ class TrinityMatrixDimensionError(TrinityException):
     def __unicode__(self):
         string = "TrinityMatrixDimensionError : %s" % self._error
         return string 
+
+
+class TrinityZeroDivisionError(TrinityException):
+    
+    def __unicode__(self):
+        string = "TrinityZeroDivisionError : %s" % self._error
+        return string 

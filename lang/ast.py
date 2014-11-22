@@ -793,16 +793,28 @@ class BinaryExpression(Expression):
         return string
 
     def execute(self, symtab):
-        if type(self._left._type) is Matrix and type(self._right._type) is not Matrix:
-            return self._function(self._left.execute(symtab), self._right.execute(symtab))
-        elif type(self._left._type) is not Matrix and type(self._right._type) is Matrix:
+        return self._function(self._left, self._right, symtab)
+        
 
 
 class Sum(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(Sum, self).__init__(position, left, lambda x,y: x + y, right)
+        super(Sum, self).__init__(position, left, Sum.sum, right)
         self._operation = "Sum"
+
+    @staticmethod
+    def sum(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        if type(left._type) is Matrix and type(right._type) is Matrix:
+            result = Matrix.ones(len(e1), len(e1[0]))
+            for i in range(len(e1)):
+                for j in range(len(e1[0])):
+                    result[i][j] = e1[i][j] + e2[i][j]
+            return result
+        elif type(left._type) is Number and type(right._type) is Number:
+            return e1 + e2
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -832,15 +844,27 @@ class Sum(BinaryExpression):
 class Subtraction(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(Subtraction, self).__init__(position, left, lambda x,y: x - y, right)
+        super(Subtraction, self).__init__(position, left, Subtraction.subtraction, right)
         self._operation = "Subtraction"
+
+    @staticmethod
+    def subtraction(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        if type(left._type) is Matrix and type(right._type) is Matrix:
+            result = Matrix.ones(len(e1), len(e1[0]))
+            for i in range(len(e1)):
+                for j in range(len(e1[0])):
+                    result[i][j] = e1[i][j] - e2[i][j]
+            return result
+        elif type(left._type) is Number and type(right._type) is Number:
+            return e1 - e2
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
         if (type(ltype) is Number) and ( type(rtype) is Number) :
             return rtype
-        
         elif (type(ltype) is Matrix) and (type(rtype) is Matrix):
             if ltype.rows != rtype.rows or ltype.cols != rtype.cols :
                 error = "In line %d, column %d, " % self._position
@@ -863,8 +887,32 @@ class Subtraction(BinaryExpression):
 class Times(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(Times, self).__init__(position, left, lambda x,y: x * y, right)
+        super(Times, self).__init__(position, left, Times.times, right)
         self._operation = "Multiplication"
+
+    @staticmethod
+    def times(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        if type(left._type) is Matrix and type(right._type) is Matrix:
+            return Times.matrix_multiply(e1, e2)
+        elif type(left._type) is Number and type(right._type) is Number:
+            return e1 * e2
+
+    @staticmethod
+    def matrix_multiply(left, right):
+        """
+        Computes dot product. An MxP matrix with an PxN matrix, resulting in an
+        MxN matrix.
+        """
+        from itertools import product
+        cols, rows = len(right[0]), len(right)
+        result_rows = xrange(len(left))
+        result_matrix = [[0] * cols for _ in result_rows]
+        for i in result_rows:
+            for j, k in product(xrange(cols), xrange(rows)):
+                result_matrix[i][j] += left[i][k] * right[k][j]
+        return result_matrix
     
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -891,8 +939,20 @@ class Times(BinaryExpression):
 class Division(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(Division,self).__init__(position, left, lambda x,y: x//y, right)
-        self._operation = "Division" 
+        super(Division,self).__init__(position, left, Division.division, right)
+        self._operation = "Division"
+
+    @staticmethod
+    def division(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        try :
+            result = e1 // e2
+        except ZeroDivisionError as zde:
+            error = "In line %d, column %d, " % right._position
+            error += "trying to compute a zero division."
+            raise TrinityZeroDivisionError(error)
+        return result
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -919,8 +979,20 @@ class Division(BinaryExpression):
 class Modulus(BinaryExpression):
     
     def __init__(self, position, left, right):
-        super(Modulus, self).__init__(position, left, lambda x,y: x % y, right)
+        super(Modulus, self).__init__(position, Modulus.modulus, right)
         self._operation = "Modulus"
+
+    @staticmethod
+    def modulus(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        try :
+            result = e1 % e2
+        except ZeroDivisionError as zde:
+            error = "In line %d, column %d, " % right._position
+            error += "trying to compute a zero division."
+            raise TrinityZeroDivisionError(error)
+        return result
     
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -940,15 +1012,27 @@ class Modulus(BinaryExpression):
                 raise TrinityMatrixDimensionError(error)
         else:
             error = "In line %d, column %d, " % self._position
-            error =  "Trying to compute modulus (mod) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
+            error += "trying to compute modulus (mod) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())
             raise TrinityTypeError(error)
 
 
 class RealDivision(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(RealDivision, self).__init__(position, left, lambda x,y: x / y, right)
+        super(RealDivision, self).__init__(position, left, RealDivision.real_division, right)
         self._operation = "Real Division"
+
+    @staticmethod
+    def real_division(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        try :
+            result = e1 / e2
+        except ZeroDivisionError as zde:
+            error = "In line %d, column %d, " % right._position
+            error += "trying to compute a zero division."
+            raise TrinityZeroDivisionError(error)
+        return result
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -975,8 +1059,20 @@ class RealDivision(BinaryExpression):
 class RealModulus(BinaryExpression):
     
     def __init__(self, position, left, right):
-        super(RealModulus, self).__init__(position, left, lambda x,y: x % y, right)
+        super(RealModulus, self).__init__(position, left, RealModulus.real_modulus, right)
         self._operation = "Real Modulus"
+
+    @staticmethod
+    def real_modulus(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        try :
+            result = e1 % e2
+        except ZeroDivisionError as zde:
+            error = "In line %d, column %d, " % right._position
+            error += "trying to compute a zero division."
+            raise TrinityZeroDivisionError(error)
+        return result
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1007,8 +1103,19 @@ class RealModulus(BinaryExpression):
 class MatrixSum(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(MatrixSum, self).__init__(position, left, None, right)
+        super(MatrixSum, self).__init__(position, left, MatrixSum.matrix_sum, right)
         self._operation = "Matrix Sum"
+
+    @staticmethod
+    def matrix_sum(left, right, symtab):
+        if type(left._type) is Matrix:
+            matrix = left.execute(symtab)
+            scalar = right.execute(symtab)
+            return map(lambda x: map(lambda y: y + scalar, x), matrix)
+        elif type(right._type) is Matrix:
+            matrix = right.execute(symtab)
+            scalar =left.execute(symtab)
+            return map(lambda x: map(lambda y: scalar  +y, x), matrix)
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1031,6 +1138,17 @@ class MatrixSubtraction(BinaryExpression):
         super(MatrixSubtraction, self).__init__(position, left, MatrixSubtraction.matrix_subtraction, right)
         self._operation = "Matrix Subtraction"
 
+    @staticmethod
+    def matrix_subtraction(left, right, symtab):
+        if type(left._type) is Matrix:
+            matrix = left.execute(symtab)
+            scalar = right.execute(symtab)
+            return map(lambda x: map(lambda y: y - scalar, x), matrix)
+        elif type(right._type) is Matrix:
+            matrix = right.execute(symtab)
+            scalar =left.execute(symtab)
+            return map(lambda x: map(lambda y: scalar - y, x), matrix)
+
     def check(self, symtab):
         ltype = self._left.check(symtab)
         rtype = self._right.check(symtab)
@@ -1045,23 +1163,23 @@ class MatrixSubtraction(BinaryExpression):
             error =  "Trying to compute (.-.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
 
-    @staticmethod
-    def matrix_subtraction(left, right):
-        if type(left._type) is Matrix:
-            matrix = left
-            scalar = right
-            return map(lambda x: map(lambda y: y - scalar, x), matrix)
-        elif type(right._type) is Matrix:
-            matrix = right
-            scalar =left
-            return map(lambda x: map(lambda y: scalar - y, x), matrix)
-
 
 class MatrixTimes(BinaryExpression):
 
     def __init__(self, position, left, right):
         super(MatrixTimes, self).__init__(position, left, MatrixTimes.matrix_times, right)
         self._operation = "Matrix Multiplication"
+
+    @staticmethod
+    def matrix_times(left, right, symtab):
+        if type(left._type) is Matrix:
+            matrix = left.execute(symtab)
+            scalar = right.execute(symtab)
+            return map(lambda x: map(lambda y: y * scalar, x), matrix)
+        elif type(right._type) is Matrix:
+            matrix = right.execute(symtab)
+            scalar =left.execute(symtab)
+            return map(lambda x: map(lambda y: scalar * y, x), matrix)
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1076,17 +1194,6 @@ class MatrixTimes(BinaryExpression):
             error = "In line %d, column %d, " % self._position
             error =  "Trying to compute (.*.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
-
-    @staticmethod
-    def matrix_times(left, right):
-        if type(left._type) is Matrix:
-            matrix = left
-            scalar = right
-            return map(lambda x: map(lambda y: y * scalar, x), matrix)
-        elif type(right._type) is Matrix:
-            matrix = right
-            scalar =left
-            return map(lambda x: map(lambda y: scalar * y, x), matrix)
         
 
 class MatrixDivision(BinaryExpression):
@@ -1094,6 +1201,29 @@ class MatrixDivision(BinaryExpression):
     def __init__(self, position, left, right):
         super(MatrixDivision, self).__init__(position, left, MatrixDivision.matrix_division, right)
         self._operation = "Matrix Division"
+
+    @staticmethod
+    def matrix_division(left, right, symtab):
+        if type(left._type) is Matrix:
+            matrix = left.execute(symtab)
+            scalar = right.execute(symtab)
+            try :
+                result = map(lambda x: map(lambda y: y // scalar, x), matrix)
+            except ZeroDivisionError as zde:
+                error = "In line %d, column %d, " % right._position
+                error += "trying to compute a zero division."
+                raise TrinityZeroDivisionError(error)
+            return result
+        elif type(right._type) is Matrix:
+            matrix = right.execute(symtab)
+            scalar =left.execute(symtab)
+            try :
+                result = map(lambda x: map(lambda y: scalar // y, x), matrix)
+            except ZeroDivisionError as zde:
+                error = "In line %d, column %d, " % right._position
+                error += "trying to compute a zero division."
+                raise TrinityZeroDivisionError(error)
+            return result
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1109,23 +1239,35 @@ class MatrixDivision(BinaryExpression):
             error =  "Trying to compute (.div.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
 
-    @staticmethod
-    def matrix_division(left, right):
-        if type(left._type) is Matrix:
-            matrix = left
-            scalar = right
-            return map(lambda x: map(lambda y: y // scalar, x), matrix)
-        elif type(right._type) is Matrix:
-            matrix = right
-            scalar =left
-            return map(lambda x: map(lambda y: scalar // y, x), matrix)
-
 
 class MatrixModulus(BinaryExpression):
 
     def __init__(self, position, left, right):
         super(MatrixModulus, self).__init__(position, left, MatrixModulus.matrix_modulus, right)
         self._operation = "Matrix Modulus"
+
+    @staticmethod
+    def matrix_modulus(left, right, symtab):
+        if type(left._type) is Matrix:
+            matrix = left.execute(symtab)
+            scalar = right.execute(symtab)
+            try :
+                result = map(lambda x: map(lambda y: y % scalar, x), matrix)
+            except ZeroDivisionError as zde:
+                error = "In line %d, column %d, " % right._position
+                error += "trying to compute a zero division."
+                raise TrinityZeroDivisionError(error)
+            return result
+        elif type(right._type) is Matrix:
+            matrix = right.execute(symtab)
+            scalar =left.execute(symtab)
+            try :
+                result = map(lambda x: map(lambda y: scalar % y, x), matrix)
+            except ZeroDivisionError as zde:
+                error = "In line %d, column %d, " % right._position
+                error += "trying to compute a zero division."
+                raise TrinityZeroDivisionError(error)
+            return result
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1141,17 +1283,6 @@ class MatrixModulus(BinaryExpression):
             error =  "Trying to compute (.mod.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
 
-    @staticmethod
-    def matrix_modulus(left, right):
-        if type(left._type) is Matrix:
-            matrix = left
-            scalar = right
-            return map(lambda x: map(lambda y: y % scalar, x), matrix)
-        elif type(right._type) is Matrix:
-            matrix = right
-            scalar =left
-            return map(lambda x: map(lambda y: scalar % y, x), matrix)
-
 
 class MatrixRealDivision(BinaryExpression):
 
@@ -1159,6 +1290,29 @@ class MatrixRealDivision(BinaryExpression):
         super(MatrixRealDivision, self).__init__(
             position, left, MatrixRealDivision.matrix_real_division, right)
         self._operation = "Matrix Real Division"
+
+    @staticmethod
+    def matrix_real_division(left, right, symtab):
+        if type(left._type) is Matrix:
+            matrix = left.execute(symtab)
+            scalar = right.execute(symtab)
+            try :
+                result = map(lambda x: map(lambda y: y / scalar, x), matrix)
+            except ZeroDivisionError as zde:
+                error = "In line %d, column %d, " % right._position
+                error += "trying to compute a zero division."
+                raise TrinityZeroDivisionError(error)
+            return result
+        elif type(right._type) is Matrix:
+            matrix = right.execute(symtab)
+            scalar =left.execute(symtab)
+            try :
+                result = map(lambda x: map(lambda y: scalar / y, x), matrix)
+            except ZeroDivisionError as zde:
+                error = "In line %d, column %d, " % right._position
+                error += "trying to compute a zero division."
+                raise TrinityZeroDivisionError(error)
+            return result
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1174,17 +1328,6 @@ class MatrixRealDivision(BinaryExpression):
             error =  "Trying to compute (./.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
 
-    @staticmethod
-    def matrix_real_division(left, right):
-        if type(left._type) is Matrix:
-            matrix = left
-            scalar = right
-            return map(lambda x: map(lambda y: y / scalar, x), matrix)
-        elif type(right._type) is Matrix:
-            matrix = right
-            scalar =left
-            return map(lambda x: map(lambda y: scalar / y, x), matrix)
-
 
 class MatrixRealModulus(BinaryExpression):
 
@@ -1192,6 +1335,29 @@ class MatrixRealModulus(BinaryExpression):
         super(MatrixRealModulus, self).__init__(
             position, left, MatrixRealModulus.matrix_real_modulus, right)
         self._operation = "Matrix Real Modulus"
+
+    @staticmethod
+    def matrix_real_modulus(left, right, symtab):
+        if type(left._type) is Matrix:
+            matrix = left.execute(symtab)
+            scalar = right.execute(symtab)
+            try :
+                result = map(lambda x: map(lambda y: y % scalar, x), matrix)
+            except ZeroDivisionError as zde:
+                error = "In line %d, column %d, " % right._position
+                error += "trying to compute a zero division."
+                raise TrinityZeroDivisionError(error)
+            return result
+        elif type(right._type) is Matrix:
+            matrix = right.execute(symtab)
+            scalar =left.execute(symtab)
+            try :
+                result = map(lambda x: map(lambda y: scalar % y, x), matrix)
+            except ZeroDivisionError as zde:
+                error = "In line %d, column %d, " % right._position
+                error += "trying to compute a zero division."
+                raise TrinityZeroDivisionError(error)
+            return result
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1207,23 +1373,18 @@ class MatrixRealModulus(BinaryExpression):
             error =  "Trying to compute (.%.) of a '%s' expression by a '%s' expression." % (ltype.__str__(),rtype.__str__())  
             raise TrinityTypeError(error)
 
-    @staticmethod
-    def matrix_real_modulus(left, right):
-        if type(left._type) is Matrix:
-            matrix = left
-            scalar = right
-            return map(lambda x: map(lambda y: y % scalar, x), matrix)
-        elif type(right._type) is Matrix:
-            matrix = right
-            scalar =left
-            return map(lambda x: map(lambda y: scalar % y, x), matrix)
-
 
 class Equivalence(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(Equivalence, self).__init__(position, left, lambda x,y: x == y, right)
+        super(Equivalence, self).__init__(position, left, Equivalence.equivalence, right)
         self._operation = "Equivalence"
+
+    @staticmethod
+    def equivalence(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        return e1 == e2
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1240,8 +1401,14 @@ class Equivalence(BinaryExpression):
 class NotEquivalence(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(NotEquivalence, self).__init__(position, left, lambda x,y: x != y, right)
+        super(NotEquivalence, self).__init__(position, left, NotEquivalence.not_equivalence, right)
         self._operation = "Not Equivalence"
+
+    @staticmethod
+    def not_equivalence(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        return e1 != e2
    
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1259,8 +1426,14 @@ class NotEquivalence(BinaryExpression):
 class GreaterOrEqual(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(GreaterOrEqual, self).__init__(position, left, lambda x,y: x >= y, right)
+        super(GreaterOrEqual, self).__init__(position, left, GreaterOrEqual.greater_or_equal, right)
         self._operation = "Greater Or Equal"
+
+    @staticmethod
+    def greater_or_equal(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        return e1 >= e2
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1270,14 +1443,21 @@ class GreaterOrEqual(BinaryExpression):
             raise TrinityTypeError(message)
         else:
             t = Boolean()
+            self._type = t
             return t
 
 
 class LessOrEqual(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(LessOrEqual, self).__init__(position, left, lambda x,y: x <= y, right)
+        super(LessOrEqual, self).__init__(position, left, LessOrEqual.less_or_equal, right)
         self._operation = "Less Or Equal"
+
+    @staticmethod
+    def less_or_equal(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        return e1 <= e2
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
@@ -1294,8 +1474,14 @@ class LessOrEqual(BinaryExpression):
 class Greater(BinaryExpression):
 
     def __init__(self, position, left, right):
-        super(Greater, self).__init__(position, left, lambda x,y: x > y, right)
+        super(Greater, self).__init__(position, left, Greater.greater, right)
         self._operation = "Greater"
+
+    @staticmethod
+    def greater(left, right, symtab):
+        e1 = left.execute(symtab)
+        e2 = right.execute(symtab)
+        return e1 > e2
 
     def check(self, symtab):
         ltype = self._left.check(symtab)
