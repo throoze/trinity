@@ -8,7 +8,8 @@
 # Victor De Ponte, 05-38087, <rdbvictor19@gmail.com>
 # Francisco Martinez, 09-10502, <frammnm@gmail.com>
 # ------------------------------------------------------------
-
+import re
+import sys
 from sym_table import * 
 from exceptions import *
 
@@ -261,13 +262,40 @@ class PrintStatement(Statement):
                 if isinstance(value,list):
                     printmatrix(list)
                 elif isinstance(value,str):
-                    sys.stdout.write(value) 
+                    scaped = False
+                    for char in value:
+                        if not scaped:
+                            if char == '\\':
+                                scaped = True
+                            else:
+                                sys.stdout.write(char)
+                        else:
+                            if char == 'a':
+                                sys.stdout.write('\a')
+                            elif char == 'b':
+                                sys.stdout.write('\b')
+                            elif char == 'f':
+                                sys.stdout.write('\f')
+                            elif char == 'n':
+                                sys.stdout.write('\n')
+                            elif char == 'r':
+                                sys.stdout.write('\r')
+                            elif char == 't':
+                                sys.stdout.write('\t')
+                            elif char == 'v':
+                                sys.stdout.write('\v')
+                            elif char == '\\':
+                                sys.stdout.write('\\')
+                            elif char == '"':
+                                sys.stdout.write('"')
+                            scaped = False
+
                 elif (value is True):
-                    sys.stdout.writ('True') 
+                    sys.stdout.write('True') 
                 elif (value is False):
                     sys.stdout.write('False')
                 else :
-                     sys.stdout.write(str(value))
+                    sys.stdout.write(str(value))
         
 class Printable(object):
 
@@ -322,11 +350,11 @@ class ReadStatement(Statement):
             raise TrinityTypeError(error)
     
     def execute(self,symtab):
-        typer = symtab.lookup(self._variable._id)
+        typer = symtab.lookup(self._variable._id, self._position)
         if (type(typer) is Number):
             s=raw_input()
             pattern = re.compile('[-]?([0-9]+)(\.[0-9]+)?')
-            ret = pattern.match(pattern,s)
+            ret = pattern.match(s)
             if ret is not None:
                 symtab.setValue(self._variable._id,ret,self._position)
         elif (type(typer) is Boolean):
