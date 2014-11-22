@@ -22,7 +22,8 @@ from lang.exceptions import (
     TrinitySyntaxError,
     TrinityScopeError,
     TrinityTypeError,
-    TrinityMatrixDimensionError
+    TrinityMatrixDimensionError,
+    TrinityZeroDivisionError
     )
 
 import ply.yacc as yacc

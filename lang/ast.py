@@ -562,16 +562,14 @@ class ForStatement(Statement):
         return string
 
     def check(self,symtab):
-        
         if type(self._iterable.check(symtab)) is not Matrix :
             error = "In line %d, column %d, " % self._position
             error += "'for' statement iterable expression is not Matrix."
             raise TrinityTypeError(error)
-        else:
-            sym_table = SymTable(father=symtab)
-            sym_table.addName(self._item, Number(self._position), self._position)
-            for state in self._statements: 
-                state.check(sym_table)
+        sym_table = SymTable(father=symtab)
+        sym_table.addName(self._item, Number(self._position), self._position)
+        for state in self._statements: 
+            state.check(sym_table)
         return True
     
 
@@ -756,6 +754,9 @@ class MatrixLiteral(Literal, Expression):
                         error += "column number doesn't match."
                         raise TrinityMatrixDimensionError(error)
         return Matrix(rows, cols, self._position)
+
+    def execute(self, symtab):
+        pass
 
 class FunctionCall(Expression):
 
@@ -986,7 +987,7 @@ class Division(BinaryExpression):
 class Modulus(BinaryExpression):
     
     def __init__(self, position, left, right):
-        super(Modulus, self).__init__(position, Modulus.modulus, right)
+        super(Modulus, self).__init__(position, left, Modulus.modulus, right)
         self._operation = "Modulus"
 
     @staticmethod

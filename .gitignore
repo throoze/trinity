@@ -61,3 +61,9 @@ target/
 # PLY
 parser.out
 parsetab.py
+
+# sentinel
+contexterr/
+sentinel-v2
+shouldfail/
+shouldpass/

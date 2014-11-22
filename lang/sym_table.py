@@ -130,7 +130,7 @@ class SymTable(object):
     """
     SPACE="    " 
 
-    def __init__(self, father=None, scope={}, in_function=None, function_type=None, belongs_to=None ):
+    def __init__(self, father=None, scope=None, in_function=None, function_type=None, belongs_to=None ):
         """
         Params:
             scope  :
@@ -140,7 +140,8 @@ class SymTable(object):
             father :
                 type: SymTable father of this SymTable.
         """
-        self._scope = scope
+        if scope is None : self._scope = {}
+        else: self._scope = scope
         self._children = []
         if father is not None: father._birth(self)
         self._father = father
@@ -152,7 +153,6 @@ class SymTable(object):
         else:
             self._in_function = in_function
         if self._in_function is True:
-
             if function_type is None:
                 if father is not None:
                     self._function_type = father.getFunctionType()
