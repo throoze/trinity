@@ -172,6 +172,7 @@ class SymTable(object):
             error += "In line %d, column %d, " % position
             error += "variable or function '%s' is already defined." % name
             raise TrinityScopeError(error)
+
         self._scope[name] = (type_class, value)
 
     def _birth(self, child):
